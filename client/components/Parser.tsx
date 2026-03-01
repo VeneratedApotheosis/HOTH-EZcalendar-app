@@ -6,15 +6,9 @@ import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Link } from "expo-router";
-import Parser from "@/components/Parser";
 
-export default function HomeScreen() {
-  return (
-    <View style={{ flex: 1, backgroundColor: "white", padding: 15 }}>
-      bruh
-      <Parser></Parser>
-    </View>
-  );
+export default function Parser() {
+  return <View style={{ flex: 1 }}>PARSER</View>;
 }
 
 const styles = StyleSheet.create({
