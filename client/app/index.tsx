@@ -14,9 +14,6 @@ import FinishScreen from "./finish";
 export default function HomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "white", padding: 15 }}>
-      <LoginButton />
-      <Parser></Parser>
-      <GmailDisplay />
       <FinishScreen />
     </View>
   );
