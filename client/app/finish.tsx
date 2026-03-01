@@ -55,7 +55,7 @@ export default function FinishScreen() {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: '#f2f2f2', // Light grey background for the "main" area
+    backgroundColor: '#F0F4F8', // Light grey background for the "main" area
   },
   headerBlob: {
     backgroundColor: 'white',
