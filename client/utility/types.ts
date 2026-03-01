@@ -12,6 +12,23 @@ export interface AccessTokenObj {
   accessToken: string;
   expiryDate: string;
 }
+
+export interface EmailMessage {
+  id: string;
+  threadId: string;
+  from: string;
+  to: string;
+  subject: string;
+  date: string;
+  snippet: string;
+  body: string;
+  isRead: boolean;
+}
+export interface EmailObj {
+  owner: string;
+  name: string;
+  messages: EmailMessage[]; // Can hold raw Google API data if processed later
+}
 export interface FamilyProfileObjs {
   parent: ProfileObj;
   children: ProfileObj[]

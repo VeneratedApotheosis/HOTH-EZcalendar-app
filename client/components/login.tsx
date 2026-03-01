@@ -18,11 +18,11 @@ export default function LoginButton() {
         disabled={!authProps.request}
       >
         {authProps.isLoading ? (
-          <Text style={styles.buttonText}> loading </Text>
+          <Text style={styles.buttonText}> Loading </Text>
         ) : authProps.jwtToken ? (
-          <Text style={styles.buttonText}> logged in as f </Text>
+          <Text style={styles.buttonText}> Logged in </Text>
         ) : (
-          <Text style={styles.buttonText}> login </Text>
+          <Text style={styles.buttonText}> Login </Text>
         )}
       </Pressable>
     </View>
