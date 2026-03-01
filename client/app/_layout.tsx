@@ -34,6 +34,14 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen name="login" options={{ title: "login" }} />
+      <Tabs.Screen name="gmail-picker"
+        options={{
+          title: "Pick Emails",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="envelope.fill" color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
