@@ -204,44 +204,6 @@ app.post('/api/get-family-access-tokens', authenticate, async (req, res) => {
   }
 });
 
-//I NEED TO WORK ON THIS, TODO:
-//1. include getting google code + PKCE for more authentication
-//req: {jwt code, childId} => {userId, childId}
-//res: 200
-app.post('/api/link', authenticate, (req, res) => {
-  try{
-    const parentId = req.userId;
-    const childId = req.childId;
-    if(!parentId || !childId) return res.status(400).json({ error: 'cid/pid is cooked' });
-
-    db.linkParentChildren(parentId,[childId]);
-    res.json(db.getChildren(parentId));
-    res.status(200);
-  } catch (error) {
-    res.status(500).json({ error: 'errorerm' });
-  }
-  
-});
-
-//req: {jwt code, childId} => {userId, chlidId}
-//res: 200
-app.post('/api/delink', authenticate, (req, res) => {
-  try{
-    const parentId = req.userId;
-    const childId = req.childId;
-    if(!parentId || !childId) return res.status(400).json({ error: 'cid/pid is cooked' });
-
-    db.delinkParentChildren(parentId,[childId]);
-
-    res.json(db.getChildren(parentId));
-    res.status(200);
-  } catch (error) {
-    res.status(500).json({ error: 'error erm' });
-  }
-  
-});
-
-
 /////////
 //DEBUG//
 /////////
