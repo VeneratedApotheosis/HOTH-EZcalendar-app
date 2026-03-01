@@ -317,6 +317,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 app.post("/api/extract-events", async (req, res) => {
   try {
     const { input, isPdf } = req.body;
+    const currentYear = new Date().getFullYear();
 
     // 2. In the new SDK, you call ai.models.generateContent directly
     // Note: We use gemini-3.1-flash for best 2026 performance
@@ -327,7 +328,9 @@ app.post("/api/extract-events", async (req, res) => {
           role: "user",
           parts: [
             {
-              text: "Extract calendar events as a JSON array. Include title, date, and time.",
+              text:
+                "Extract calendar events as a JSON array. Include title, date of the form YYYY-MM-DD, time of the form [start time]-[end time], and location. If there is no year, set the current year to" +
+                currentYear,
             },
             isPdf
               ? { inlineData: { data: input, mimeType: "application/pdf" } }
@@ -339,10 +342,10 @@ app.post("/api/extract-events", async (req, res) => {
         responseMimeType: "application/json",
       },
     });
-    // --- THE FIX IS HERE ---
+    // parse input response
     let rawText = response.text;
 
-    // 1. Manually strip markdown code blocks if they exist
+    //Manually strip markdown code blocks if they exist
     const cleanedText = rawText
       .replace(/```json/g, "")
       .replace(/```/g, "")
@@ -356,7 +359,7 @@ app.post("/api/extract-events", async (req, res) => {
       throw new Error("Gemini returned invalid JSON structure.");
     }
 
-    // 3. In the new SDK, the text is at response.text (not a function)
+    //recieve response text
     const resultText = response.text;
     res.json(JSON.parse(resultText));
   } catch (error) {

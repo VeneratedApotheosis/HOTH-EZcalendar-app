@@ -95,7 +95,7 @@ export const fetchEmails = async (accessToken: string) => {
 
 export const fetchGemini = async (input: string, isPdf: boolean = false) => {
   try {
-    // 3. Send to your Node.js backend
+    //Send Req to Backend
     const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_LINK}/api/extract-events`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -105,8 +105,10 @@ export const fetchGemini = async (input: string, isPdf: boolean = false) => {
       }),
     });
 
+    //Receive requests
     const data = await response.json();
     console.log('Extracted Events:', data);
+    return data;
     Alert.alert('Success', `Found ${data.length} events!`);
   } catch (error) {
     console.error(error);
