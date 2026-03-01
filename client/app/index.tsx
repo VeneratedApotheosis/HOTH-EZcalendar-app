@@ -7,7 +7,9 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Link } from "expo-router";
 import Parser from "@/components/Parser";
+import GmailDisplay from "@/components/gmail-display";
 import LoginButton from "@/components/login";
+
 import { Ionicons, MaterialCommunityIcons, FontAwesome } from "@expo/vector-icons";
 
 
@@ -45,6 +47,17 @@ export default function HomeScreen() {
       <View style={styles.loginButton}>
         <LoginButton />
       </View>
+
+import FinishScreen from "./finish";
+
+export default function HomeScreen() {
+  return (
+    <View style={{ flex: 1, backgroundColor: "white", padding: 15 }}>
+      <LoginButton />
+      <Parser></Parser>
+      <GmailDisplay />
+      <FinishScreen />
+
     </View>
   );
 }

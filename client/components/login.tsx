@@ -1,8 +1,8 @@
-import { useAccessToken } from '@/hooks/useAccessToken';
-import { useAuth } from '@/hooks/useAuth';
-import { useCalendar } from '@/hooks/useCalendar';
-import { useProfiles } from '@/hooks/useProfile';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useAccessToken } from "@/hooks/useAccessToken";
+import { useAuth } from "@/hooks/useAuth";
+import { useCalendar } from "@/hooks/useCalendar";
+import { useProfiles } from "@/hooks/useProfile";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function LoginButton() {
   const authProps = useAuth();
@@ -12,7 +12,11 @@ export default function LoginButton() {
 
   return (
     <View style={styles.homepg}>
-      <Pressable style={styles.button} onPress={() => authProps.promptAsync()} disabled={!authProps.request}>
+      <Pressable
+        style={styles.button}
+        onPress={() => authProps.promptAsync()}
+        disabled={!authProps.request}
+      >
         {authProps.isLoading ? (
           <Text style={styles.buttonText}> loading </Text>
         ) : authProps.jwtToken ? (
@@ -21,14 +25,6 @@ export default function LoginButton() {
           <Text style={styles.buttonText}> login </Text>
         )}
       </Pressable>
-
-      <View>
-        <Text></Text>
-      </View>
-      <View style={styles.tokenContainer}>
-        <Text style={styles.label}>JWT Token:</Text>
-        <Text style={styles.tokenText}>{authProps.jwtToken ? authProps.jwtToken.sessionToken : 'No token yet'}</Text>
-      </View>
     </View>
   );
 }
@@ -36,40 +32,46 @@ export default function LoginButton() {
 const styles = StyleSheet.create({
   homepg: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 16,
   },
   button: {
     padding: 12,
+
     backgroundColor: '#4285F4',
     borderRadius: 8,
     alignItems: 'center',
+
+    backgroundColor: "#4285F4",
+    borderRadius: 6,
+    alignItems: "center",
+
     marginBottom: 20,
   },
   buttonText: {
-    color: 'white',
-    fontWeight: '600',
+    color: "white",
+    fontWeight: "600",
   },
 
   tokenText: {
-    color: '#000000',
-    fontWeight: '600',
-    alignItems: 'center',
+    color: "#000000",
+    fontWeight: "600",
+    alignItems: "center",
     padding: 12,
   },
   tokenContainer: {
-    flexDirection: 'row', // Places items side-by-side
+    flexDirection: "row", // Places items side-by-side
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
-    overflow: 'hidden', // Ensures inner colored boxes don't spill outs
-    backgroundColor: 'white',
+    overflow: "hidden", // Ensures inner colored boxes don't spill outs
+    backgroundColor: "white",
   },
   label: {
-    backgroundColor: '#f0f0f0', // Light grey for the label background
+    backgroundColor: "#f0f0f0", // Light grey for the label background
     padding: 12,
     borderRightWidth: 1,
-    borderRightColor: '#ddd',
-    justifyContent: 'center',
+    borderRightColor: "#ddd",
+    justifyContent: "center",
   },
 });
