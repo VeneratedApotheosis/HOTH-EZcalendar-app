@@ -1,27 +1,43 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
+import React, { useState, useCallback } from "react";
+import { EmailData } from "@/utility/types";
 
-import { EmailRow, SelectedEmailCard } from '../components/gmail_components';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import {
+  View,
+  Text,
+  FlatList,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Dimensions,
+  StyleSheet,
+} from "react-native";
 
-export interface GmailEmail {
-  id: string;
-  sender: string;
-  senderEmail: string;
-  subject: string;
-  snippet: string;
-  date: string;
-  isRead: boolean;
-}
-
+import { EmailRow, SelectedEmailCard } from "../components/gmail_components";
+import { AuthContext } from "@/app/context"; // Adjust path to your context
+import { useEmail } from "@/hooks/useEmail"; // Adjust path to your hook
+import { useContext } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 export interface GmailPickerProps {
-  emails?: GmailEmail[];
+  emails?: EmailData[];
   isLoading?: boolean;
-  onConfirm?: (selected: GmailEmail[]) => void;
+  onConfirm?: (selected: EmailData[]) => void;
 }
 
-export default function GmailPicker({ emails = MOCK_EMAILS, isLoading = false, onConfirm }: GmailPickerProps) {
+
+export default function GmailPicker({
+  onConfirm,
+}: GmailPickerProps) {
+
+  const { jwtToken } = useContext(AuthContext);
+  const sessionToken = jwtToken?.sessionToken ?? null;
+
+  // 2. Fetch the emails using your hook
+  const { emails: fetchedData, isLoading } = useEmail(sessionToken);
+
+  // 3. Extract the array of messages (fallback to empty array if null)
+  const emails = fetchedData?.messages || [];
+
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const toggleEmail = useCallback((id: string) => {
@@ -46,11 +62,15 @@ export default function GmailPicker({ emails = MOCK_EMAILS, isLoading = false, o
     onConfirm?.(selectedEmails);
   };
 
-  const renderEmailRow = ({ item }: { item: GmailEmail }) => (
-    <EmailRow email={item} isSelected={selectedIds.has(item.id)} onToggle={toggleEmail} />
+  const renderEmailRow = ({ item }: { item: EmailData }) => (
+    <EmailRow
+      email={item}
+      isSelected={selectedIds.has(item.id)}
+      onToggle={toggleEmail}
+    />
   );
-
-  const router = useRouter();
+    
+    const router = useRouter();
 
   return (
     <View style={styles.container}>
@@ -269,7 +289,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export const MOCK_EMAILS: GmailEmail[] = [
+export const MOCK_EMAILS: EmailData[] = [
   {
     id: '1',
     sender: 'Google Security',
