@@ -1,5 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, FlatList, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
 
 import { EmailRow, SelectedEmailCard } from '../components/gmail_components';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,6 +23,7 @@ export interface GmailPickerProps {
   onConfirm?: (selected: GmailEmail[]) => void;
 }
 
+export default function GmailPicker({ emails = MOCK_EMAILS, isLoading = false, onConfirm }: GmailPickerProps) {
 export default function GmailPicker({ emails = MOCK_EMAILS, isLoading = false, onConfirm }: GmailPickerProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -47,6 +50,7 @@ export default function GmailPicker({ emails = MOCK_EMAILS, isLoading = false, o
   };
 
   const renderEmailRow = ({ item }: { item: GmailEmail }) => (
+    <EmailRow email={item} isSelected={selectedIds.has(item.id)} onToggle={toggleEmail} />
     <EmailRow email={item} isSelected={selectedIds.has(item.id)} onToggle={toggleEmail} />
   );
 
@@ -91,16 +95,20 @@ export default function GmailPicker({ emails = MOCK_EMAILS, isLoading = false, o
         <View style={[styles.panel, styles.panelRight]}>
           <Text style={styles.panelLabel}>Selected</Text>
 
+
           {selectedEmails.length === 0 ? (
             <View style={styles.emptyState}>
               <View style={styles.emptyCircle}>
                 <Text style={styles.emptyIcon}>×</Text>
               </View>
               <Text style={styles.emptyText}>No emails{'\n'}selected yet</Text>
+              <Text style={styles.emptyText}>No emails{'\n'}selected yet</Text>
             </View>
           ) : (
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.selectedList}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.selectedList}>
               {selectedEmails.map((email) => (
+                <SelectedEmailCard key={email.id} email={email} onRemove={removeEmail} />
                 <SelectedEmailCard key={email.id} email={email} onRemove={removeEmail} />
               ))}
             </ScrollView>
@@ -113,8 +121,10 @@ export default function GmailPicker({ emails = MOCK_EMAILS, isLoading = false, o
           onPress={handleConfirm}
           disabled={selectedIds.size === 0}
           style={[styles.confirmBtn, selectedIds.size === 0 && styles.confirmBtnDisabled]}
+          style={[styles.confirmBtn, selectedIds.size === 0 && styles.confirmBtnDisabled]}
           activeOpacity={0.8}
         >
+          <Text style={styles.confirmBtnText}>{selectedIds.size === 0 ? 'Pick some emails!' : `Process ${selectedIds.size} Items →`}</Text>
           <Text style={styles.confirmBtnText}>{selectedIds.size === 0 ? 'Pick some emails!' : `Process ${selectedIds.size} Items →`}</Text>
         </TouchableOpacity>
       </View>
@@ -126,17 +136,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F0F4F8',
+  container: {
+    flex: 1,
+    backgroundColor: '#F0F4F8',
   },
 
+
   topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 18,
     backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFFFFF',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
+
+    shadowColor: '#000',
 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -151,9 +171,21 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
     backgroundColor: '#FF8A80', // Pastel Coral
+  topBarLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  gmailDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FF8A80', // Pastel Coral
     borderWidth: 2,
     borderColor: '#fff',
+    borderColor: '#fff',
   },
+  topBarTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#334155',
+    letterSpacing: -0.5,
   topBarTitle: {
     fontSize: 20,
     fontWeight: '900',
@@ -165,8 +197,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#7EB6FF',
     backgroundColor: '#EBF4FF',
+  topBarCount: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#7EB6FF',
+    backgroundColor: '#EBF4FF',
     paddingHorizontal: 12,
     paddingVertical: 6,
+    borderRadius: 12,
     borderRadius: 12,
   },
 
@@ -175,19 +213,31 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 28,
+  panels: { flex: 1, flexDirection: 'row', padding: 12, gap: 12 },
+  panel: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
     overflow: 'hidden',
     borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.02)',
     borderColor: 'rgba(0,0,0,0.02)',
   },
   panelLeft: { elevation: 2 },
   panelRight: {
     backgroundColor: 'rgba(255,255,255,0.7)',
+  panelRight: {
+    backgroundColor: 'rgba(255,255,255,0.7)',
     borderStyle: 'dashed',
+    borderColor: '#CBD5E1',
     borderColor: '#CBD5E1',
   },
 
+
   panelLabel: {
     fontSize: 11,
+    fontWeight: '800',
+    color: '#94A3B8',
     fontWeight: '800',
     color: '#94A3B8',
     letterSpacing: 1.5,
@@ -195,7 +245,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     textAlign: 'center',
     textTransform: 'uppercase',
+    textTransform: 'uppercase',
   },
+  divider: { width: 0 },
+
   divider: { width: 0 },
 
   listContent: { paddingBottom: 20 },
@@ -205,14 +258,28 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 24,
+    gap: 8,
     gap: 8,
   },
   emptyIcon: {
     fontSize: 24,
     color: '#CBD5E1',
     fontWeight: '300',
+    color: '#CBD5E1',
+    fontWeight: '300',
   },
+  emptyText: {
+    fontSize: 13,
+    color: '#94A3B8',
+    textAlign: 'center',
+    fontWeight: '600',
+    lineHeight: 18,
   emptyText: {
     fontSize: 13,
     color: '#94A3B8',
@@ -224,7 +291,17 @@ const styles = StyleSheet.create({
   footer: {
     padding: 20,
     backgroundColor: 'transparent',
+
+  footer: {
+    padding: 20,
+    backgroundColor: 'transparent',
   },
+  confirmBtn: {
+    backgroundColor: '#7EB6FF',
+    borderRadius: 22,
+    paddingVertical: 18,
+    alignItems: 'center',
+    shadowColor: '#7EB6FF',
   confirmBtn: {
     backgroundColor: '#7EB6FF',
     borderRadius: 22,
@@ -235,11 +312,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 8,
+    elevation: 8,
   },
   confirmBtnDisabled: {
     backgroundColor: '#CBD5E1',
     shadowOpacity: 0,
+  confirmBtnDisabled: {
+    backgroundColor: '#CBD5E1',
+    shadowOpacity: 0,
   },
+  confirmBtnText: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   confirmBtnText: {
     color: '#FFFFFF',
     fontSize: 17,
@@ -250,9 +336,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 40,
   },
   topBarCountContainer: {
+    backgroundColor: '#F0F7FF',
     backgroundColor: '#F0F7FF',
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -262,6 +351,9 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
@@ -277,9 +369,21 @@ export const MOCK_EMAILS: GmailEmail[] = [
     subject: 'Security alert for your linked account',
     snippet: 'A new sign-in was detected on a Windows device. If this was you...',
     date: '10:45 AM',
+    id: '1',
+    sender: 'Google Security',
+    senderEmail: 'no-reply@accounts.google.com',
+    subject: 'Security alert for your linked account',
+    snippet: 'A new sign-in was detected on a Windows device. If this was you...',
+    date: '10:45 AM',
     isRead: false,
   },
   {
+    id: '2',
+    sender: 'GitHub',
+    senderEmail: 'noreply@github.com',
+    subject: '[GitHub] Payment Receipt for @your-username',
+    snippet: 'Your payment for the monthly Pro plan has been processed successfully.',
+    date: 'Yesterday',
     id: '2',
     sender: 'GitHub',
     senderEmail: 'noreply@github.com',
@@ -293,11 +397,22 @@ export const MOCK_EMAILS: GmailEmail[] = [
     sender: 'Figma',
     senderEmail: 'comment-reply@figma.com',
     subject: 'New comment on [Mobile App] Design System',
+    id: '3',
+    sender: 'Figma',
+    senderEmail: 'comment-reply@figma.com',
+    subject: 'New comment on [Mobile App] Design System',
     snippet: "Sarah left a comment: 'Should we change this primary blue to #1A73E8?'",
+    date: 'Feb 28',
     date: 'Feb 28',
     isRead: false,
   },
   {
+    id: '4',
+    sender: 'Vercel',
+    senderEmail: 'deployment@vercel.com',
+    subject: 'Deployment Successful: client-app-7x92j',
+    snippet: 'Your project was successfully deployed to production. View the logs...',
+    date: 'Feb 27',
     id: '4',
     sender: 'Vercel',
     senderEmail: 'deployment@vercel.com',
@@ -311,11 +426,22 @@ export const MOCK_EMAILS: GmailEmail[] = [
     sender: 'Slack',
     senderEmail: 'notification@slack.com',
     subject: 'You have 3 unread messages in #dev-team',
+    id: '5',
+    sender: 'Slack',
+    senderEmail: 'notification@slack.com',
+    subject: 'You have 3 unread messages in #dev-team',
     snippet: "John Doe: 'Has anyone checked the new API endpoint yet?'",
+    date: 'Feb 27',
     date: 'Feb 27',
     isRead: false,
   },
   {
+    id: '6',
+    sender: 'Stripe',
+    senderEmail: 'support@stripe.com',
+    subject: 'Your weekly payout is on its way',
+    snippet: 'We’ve initiated a transfer of $1,240.00 to your bank account ending in 4242.',
+    date: 'Feb 26',
     id: '6',
     sender: 'Stripe',
     senderEmail: 'support@stripe.com',
@@ -331,9 +457,21 @@ export const MOCK_EMAILS: GmailEmail[] = [
     subject: 'Security alert for your linked account',
     snippet: 'A new sign-in was detected on a Windows device. If this was you...',
     date: '10:45 AM',
+    id: '7',
+    sender: 'Google Security2',
+    senderEmail: 'no-reply@accounts.google.com',
+    subject: 'Security alert for your linked account',
+    snippet: 'A new sign-in was detected on a Windows device. If this was you...',
+    date: '10:45 AM',
     isRead: false,
   },
   {
+    id: '8',
+    sender: 'GitHub2',
+    senderEmail: 'noreply@github.com',
+    subject: '[GitHub] Payment Receipt for @your-username',
+    snippet: 'Your payment for the monthly Pro plan has been processed successfully.',
+    date: 'Yesterday',
     id: '8',
     sender: 'GitHub2',
     senderEmail: 'noreply@github.com',
@@ -347,11 +485,22 @@ export const MOCK_EMAILS: GmailEmail[] = [
     sender: 'Figma2',
     senderEmail: 'comment-reply@figma.com',
     subject: 'New comment on [Mobile App] Design System',
+    id: '9',
+    sender: 'Figma2',
+    senderEmail: 'comment-reply@figma.com',
+    subject: 'New comment on [Mobile App] Design System',
     snippet: "Sarah left a comment: 'Should we change this primary blue to #1A73E8?'",
+    date: 'Feb 28',
     date: 'Feb 28',
     isRead: false,
   },
   {
+    id: '10',
+    sender: 'Vercel2',
+    senderEmail: 'deployment@vercel.com',
+    subject: 'Deployment Successful: client-app-7x92j',
+    snippet: 'Your project was successfully deployed to production. View the logs...',
+    date: 'Feb 27',
     id: '10',
     sender: 'Vercel2',
     senderEmail: 'deployment@vercel.com',
@@ -365,7 +514,12 @@ export const MOCK_EMAILS: GmailEmail[] = [
     sender: 'Slack2',
     senderEmail: 'notification@slack.com',
     subject: 'You have 3 unread messages in #dev-team',
+    id: '11',
+    sender: 'Slack2',
+    senderEmail: 'notification@slack.com',
+    subject: 'You have 3 unread messages in #dev-team',
     snippet: "John Doe: 'Has anyone checked the new API endpoint yet?'",
+    date: 'Feb 27',
     date: 'Feb 27',
     isRead: false,
   },
@@ -376,6 +530,14 @@ export const MOCK_EMAILS: GmailEmail[] = [
     subject: 'Your weekly payout is on its way',
     snippet: 'We’ve initiated a transfer of $1,240.00 to your bank account ending in 4242.',
     date: 'Feb 26',
+    id: '12',
+    sender: 'Stripe2',
+    senderEmail: 'support@stripe.com',
+    subject: 'Your weekly payout is on its way',
+    snippet: 'We’ve initiated a transfer of $1,240.00 to your bank account ending in 4242.',
+    date: 'Feb 26',
     isRead: true,
   },
+  },
 ];
+
