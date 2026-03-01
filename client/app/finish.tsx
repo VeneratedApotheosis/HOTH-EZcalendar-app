@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import CalendarEvent from '@/components/calendar-event';
+import { useCalendarLocal, EventDetails } from '../components/calendar-context'; // Adjust path
 
 export default function FinishScreen() {
   const router = useRouter();
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const { events } = useCalendarLocal();
+  const colors = ['#ffb3ba', '#ffdfba', '#ffffba', '#baffc9', '#bae1ff'];
 
   const handleAddToCalendar = () => {
     setStatus('loading');
@@ -30,9 +33,19 @@ export default function FinishScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.calendarEventContainer}>
-          <CalendarEvent title={'Eating'} time={'2pm - 4pm'} color={'#bae1ff'} />
-          <CalendarEvent title={'Meeting?'} time={'8pm - 10pm'} color={'#bae1ff'} />
-          <CalendarEvent title={'A hackathon'} time={'3pm - 7pm'} color={'#bae1ff'} />
+          {events.length === 0 ? (
+            <Text style={styles.emptyText}>No events extracted yet. Try scanning a PDF!</Text>
+          ) : (
+            events.map((event: EventDetails, index: number) => (
+              <CalendarEvent
+                key={`${event.title}-${index}`} // Unique key for React
+                title={event.title}
+                // Combining Date and Time for the display if needed
+                time={`${event.date} @ ${event.time}`}
+                color={colors[index % colors.length]}
+              />
+            ))
+          )}
         </View>
       </ScrollView>
 
@@ -55,8 +68,9 @@ export default function FinishScreen() {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: '#f2f2f2', // Light grey background for the "main" area
+    backgroundColor: '#F0F4F8', // Light grey background for the "main" area
   },
+  emptyText: { textAlign: 'center', marginTop: 50, color: '#888' },
   headerBlob: {
     backgroundColor: 'white',
     paddingTop: 60, // Adjust based on status bar height

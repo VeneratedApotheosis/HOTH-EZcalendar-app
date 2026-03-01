@@ -1,118 +1,124 @@
-import { Image } from 'expo-image';
-import { Text, Platform, StyleSheet, View } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
-import Parser from '@/components/Parser';
-import GmailDisplay from '@/components/gmail-display';
+import React, { useEffect, useRef } from 'react';
+import { Text, StyleSheet, View, Animated, Easing, SafeAreaView, Platform, useWindowDimensions } from 'react-native';
 import LoginButton from '@/components/login';
-import LogoutButton from '@/components/logout';
-
-import { Ionicons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
+import { GmailIcon, CalendarIcon, FlowArrow, ServiceBadge, PDFIcon, TextIcon } from '@/components/brand_icons';
+import { useFadeSlide } from '@/hooks/use_fade_slide';
 
 export default function HomeScreen() {
+  const { width: screenWidth } = useWindowDimensions();
+  const titleAnim = useFadeSlide(0);
+  const subtitleAnim = useFadeSlide(100);
+  const flowAnim = useFadeSlide(200);
+  const loginAnim = useFadeSlide(400);
+
+  const bounceAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounceAnim, {
+          toValue: 1.02,
+          duration: 2000,
+          easing: Easing.bezier(0.4, 0, 0.2, 1),
+          useNativeDriver: true,
+        }),
+        Animated.timing(bounceAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, []);
+
+  const animatedStyle = { transform: [{ scale: bounceAnim }] };
+
+  // Stable scale calculation
+  const iconScale = screenWidth > 1000 ? 1.1 : 1;
+
   return (
-    <View style={styles.container}>
-      {/* Title and Description */}
-      <View style={styles.header}>
-        <Text style={styles.title}>EZcalendar</Text>
-        <Text style={styles.description}>
-          Parse your emails and documents to automatically populate your calendar.
-        </Text>
-        
-        {/* Icons Card - Now Styled with Modern Look */}
-        <View style={styles.mainIconContainer}>
-            
-            {/* Stacked Icons */}
-            <View style={styles.leftStack}>
-              <MaterialCommunityIcons name="email-outline" size={32} color="#4285F4" style={styles.iconSpacing} />
-              <FontAwesome name="file-text-o" size={30} color="#4285F4" style={styles.iconSpacing} />
-              <FontAwesome name="file-pdf-o" size={30} color="#4285F4" />
-            </View>
-            {/* Arrow */}
-            <Ionicons name="arrow-forward-outline" size={32} color="#A0A0A0" style={styles.arrow} />
-            {/* Calendar Icon */}
-            <View style={styles.calendar}>
-              <FontAwesome name="calendar" size={64} color="#4285F4" />
-            </View>
+    <SafeAreaView style={styles.container}>
+      <View style={[styles.blob, styles.blob_one]} />
+      <View style={[styles.blob, styles.blob_two]} />
+
+      <View style={styles.mainWrapper}>
+        <View style={styles.inner}>
+          <View style={styles.headerSection}>
+            <Animated.View style={[styles.titleBlock, titleAnim]}>
+              <Text style={styles.eyebrow}>WELCOME TO</Text>
+              <Text style={styles.title}>EZcalendar</Text>
+            </Animated.View>
+            <Animated.Text style={[styles.subtitle, subtitleAnim]}>
+              Connect Gmail, parse your events with AI, and sync your life instantly.
+            </Animated.Text>
+          </View>
+
+          <View style={styles.cardWrapper}>
+            <Animated.View style={[styles.flowCard, flowAnim]}>
+              <Animated.View style={[styles.sideColumn, animatedStyle]}>
+                <ServiceBadge icon={<GmailIcon size={40 * iconScale} />} label="Gmail" size={85 * iconScale} />
+                <ServiceBadge icon={<PDFIcon size={35 * iconScale} />} label="PDF" size={85 * iconScale} />
+                <ServiceBadge icon={<TextIcon size={32 * iconScale} />} label="Text" size={85 * iconScale} />
+              </Animated.View>
+
+              <View style={styles.centerFlow}>
+                {/* Fixed size prop by ensuring it is a calculated number */}
+                <FlowArrow size={24 * iconScale} />
+                <View style={styles.aiTag}>
+                  <Text style={styles.aiText}>AI</Text>
+                </View>
+                <FlowArrow size={24 * iconScale} />
+              </View>
+
+              <Animated.View style={[styles.sideColumn, animatedStyle]}>
+                <ServiceBadge icon={<CalendarIcon size={45 * iconScale} />} label="Calendar" size={100 * iconScale} />
+              </Animated.View>
+            </Animated.View>
+          </View>
+
+          <View style={styles.footerContainer}>
+            <Animated.View style={[styles.loginWrap, loginAnim]}>
+              <LoginButton />
+              <Text style={styles.loginHint}>POWERED BY GOOGLE CLOUD SECURITY</Text>
+            </Animated.View>
+          </View>
         </View>
       </View>
-      {/* Login Button Area */}
-      <View style={styles.loginButtonWrapper}>
-        <LoginButton />
-        <LogoutButton />
-      </View>
-    </View>
+    </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8F9FA", // Light, modern background color
-    paddingHorizontal: 24,
-    paddingVertical: 60,
-    justifyContent: "space-between",
-  },
-  header: {
-    alignItems: "center",
-    marginTop: 40,
-    gap: 16,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: "800", // Extra bold for visual hierarchy
-    color: "#1A1A1A",
-    letterSpacing: -0.5,
-    marginBottom: 8,
-  },
-  description: {
-    fontSize: 16,
-    textAlign: "center",
-    color: "#5F6368",
-    lineHeight: 24, // Improves readability
-    paddingHorizontal: 10,
-    marginBottom: 30,
-  },
-    
-  mainIconContainer: {
+  container: { flex: 1, backgroundColor: '#F4F7FB', alignItems: 'center', justifyContent: 'center' },
+  mainWrapper: { width: '90%', maxWidth: 500, height: '100%', maxHeight: 850, zIndex: 10 },
+  inner: { flex: 1, alignItems: 'center', justifyContent: 'space-between', paddingVertical: 50 },
+  headerSection: { alignItems: 'center', width: '100%' },
+  titleBlock: { alignItems: 'center', marginBottom: 8 },
+  eyebrow: { fontSize: 13, fontWeight: '800', color: '#7EB6FF', letterSpacing: 2 },
+  title: { fontSize: 48, fontWeight: '900', color: '#1E293B' },
+  subtitle: { fontSize: 16, color: '#64748B', textAlign: 'center', lineHeight: 24, marginTop: 10, maxWidth: '90%' },
+  cardWrapper: { width: '100%', alignItems: 'center', justifyContent: 'center', flexShrink: 1 },
+  flowCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 40,
+    paddingVertical: 35,
     width: '100%',
-    
-    // Modern Card Styles
-    backgroundColor: '#FFFFFF', // Solid white card
-    borderRadius: 24,           // More rounded corners
-    padding: 30,                // Increased padding
-    
-    // Shadows for Depth (makes it look like a physical card)
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,               // Android shadow
+    ...Platform.select({
+      ios: { shadowColor: '#7EB6FF', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.15, shadowRadius: 20 },
+      android: { elevation: 10 },
+      web: { boxShadow: '0 10px 30px rgba(126, 182, 255, 0.15)' },
+    }),
   },
-  
-  leftStack: {
-    flexDirection: 'column',
-    marginRight: 25,
-    alignItems: 'center',
-  },
-  iconSpacing: {
-    marginBottom: 15,
-  },
-  arrow: {
-    marginRight: 25,
-  },
-  calendar: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loginButtonWrapper: {
-    width: "100%",
-    alignItems: 'center',
-  },
+  sideColumn: { flex: 1, alignItems: 'center', gap: 15 },
+  centerFlow: { width: 50, alignItems: 'center', gap: 10 },
+  aiTag: { backgroundColor: '#F0F7FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  aiText: { fontSize: 10, fontWeight: '900', color: '#7EB6FF' },
+  footerContainer: { width: '100%', alignItems: 'center' },
+  loginWrap: { width: '100%', maxWidth: 400, alignItems: 'center', gap: 12 },
+  loginHint: { fontSize: 10, color: '#94A3B8', fontWeight: '800', letterSpacing: 1 },
+  blob: { position: 'absolute', zIndex: 1 },
+  blob_one: { top: -40, right: -40, width: 300, height: 300, borderRadius: 150, backgroundColor: '#adc5f1', opacity: 0.4 },
+  blob_two: { bottom: '5%', left: -80, width: 250, height: 250, borderRadius: 125, backgroundColor: '#f4bfc7', opacity: 0.4 },
 });

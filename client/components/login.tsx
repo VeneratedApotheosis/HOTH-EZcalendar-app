@@ -1,18 +1,32 @@
+import { useEffect } from "react"; //
+import { useRouter } from "expo-router"; //
 import { useAccessToken } from "@/hooks/useAccessToken";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfiles } from "@/hooks/useProfile";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+
 export default function LoginButton() {
   const authProps = useAuth();
+  const router = useRouter(); // Initialize the router
+
   useProfiles(authProps.jwtToken?.sessionToken || null);
   useAccessToken(authProps.jwtToken?.sessionToken || null);
+  useCalendar(authProps.jwtToken?.sessionToken || null);
+
+  // Watch for successful login and redirect
+  useEffect(() => {
+    if (authProps.jwtToken) {
+      // Replace 'index' with 'gmail-picker' to go to selector.tsx
+      router.replace("/selector"); //
+    }
+  }, [authProps.jwtToken]); // Runs every time jwtToken changes
 
   return (
     <View style={styles.container}>
       <Pressable
         style={({ pressed }) => [
           styles.button,
-          pressed && styles.buttonPressed, // Adds a subtle press effect
+          pressed && styles.buttonPressed,
           !authProps.request && styles.buttonDisabled,
         ]}
         onPress={() => authProps.promptAsync()}
@@ -21,14 +35,16 @@ export default function LoginButton() {
         {authProps.isLoading ? (
           <Text style={styles.buttonText}>Loading...</Text>
         ) : authProps.jwtToken ? (
-          <Text style={styles.buttonText}>Logged in!</Text>
+          <Text style={styles.buttonText}>Redirecting...</Text> // Updated feedback
         ) : (
-          <Text style={styles.buttonText}>Login</Text>
+          <Text style={styles.buttonText}>Login with Google</Text>
         )}
       </Pressable>
     </View>
   );
 }
+
+// ... styles remain the same
 const styles = StyleSheet.create({
   container: {
     // Removed flex: 1 and backgroundColor to allow it to be
