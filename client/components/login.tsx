@@ -17,7 +17,6 @@ export default function LoginButton() {
   // Watch for successful login and redirect
   useEffect(() => {
     if (authProps.jwtToken) {
-      // Replace 'index' with 'gmail-picker' to go to selector.tsx
       router.replace("/selector"); //
     }
   }, [authProps.jwtToken]); // Runs every time jwtToken changes
