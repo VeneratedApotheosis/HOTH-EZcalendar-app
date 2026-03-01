@@ -6,8 +6,6 @@ import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
-import Parser from '@/components/Parser';
-import GmailDisplay from '@/components/gmail-display';
 import LoginButton from '@/components/login';
 
 import { Ionicons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
@@ -40,6 +38,7 @@ export default function HomeScreen() {
           </View>
         </View>
       </View>
+      <LoginButton />
     </View>
   );
 }
