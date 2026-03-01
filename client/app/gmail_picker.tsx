@@ -1,43 +1,66 @@
-import React, { useState, useCallback } from "react";
-import { EmailData } from "@/utility/types";
+import React, { useState, useCallback } from 'react';
+import { EmailData } from '@/utility/types';
 
-import {
-  View,
-  Text,
-  FlatList,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Dimensions,
-  StyleSheet,
-} from "react-native";
+import { View, Text, FlatList, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
 
-import { EmailRow, SelectedEmailCard } from "../components/gmail_components";
-import { AuthContext } from "@/app/context"; // Adjust path to your context
-import { useEmail } from "@/hooks/useEmail"; // Adjust path to your hook
-import { useContext } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { EmailRow, SelectedEmailCard } from '../components/gmail_components';
+import { AuthContext } from '@/components/context'; // Adjust path to your context
+import { useEmail } from '@/hooks/useEmail'; // Adjust path to your hook
+import { useContext } from 'react';
+import { fetchGemini } from '@/services/api';
+import { useCalendarLocal } from '@/components/calendar-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 export interface GmailPickerProps {
   emails?: EmailData[];
   isLoading?: boolean;
-  onConfirm?: (selected: EmailData[]) => void;
+  onConfirm?: (selected: EmailData[]) => Promise<void>;
 }
 
-
-export default function GmailPicker({
-  onConfirm,
-}: GmailPickerProps) {
-
+export default function GmailPicker({ onConfirm }: GmailPickerProps) {
+  const [extractedText, setExtractedText] = useState('');
+  const [isFetching, setIsFetching] = useState(false);
+  const [status, setStatus] = useState('idle');
+  const { addEvents, clearEvents } = useCalendarLocal();
   const { jwtToken } = useContext(AuthContext);
   const sessionToken = jwtToken?.sessionToken ?? null;
 
+  const handleConfirmEmails = async (selected: EmailData[]) => {
+    if (selected.length === 0) return;
+    setIsFetching(true);
+    setStatus('processing');
+
+    //Combine all selected email bodies into one string
+    const combinedInput = selected.map((email) => `Subject: ${email.subject}\nContent: ${email.body}`).join('\n---\n');
+
+    try {
+      const result = await fetchGemini(combinedInput, false);
+
+      if (result) {
+        if (result.error) {
+          throw Error('Gemini fetch failed: Limit likely exceeded');
+        }
+        clearEvents();
+        addEvents(result);
+        setExtractedText(JSON.stringify(result, null, 2));
+        setStatus('success');
+      } else setStatus('fail');
+    } catch (error) {
+      console.error('Gemini processing failed', error);
+      setStatus('fail');
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  const handleGoFinish = () => {
+    router.replace('/finish');
+  };
+
   // 2. Fetch the emails using your hook
-  const { emails: fetchedData, isLoading } = useEmail(sessionToken);
-
   // 3. Extract the array of messages (fallback to empty array if null)
+  const { emails: fetchedData, isLoading } = useEmail(sessionToken);
   const emails = fetchedData?.messages || [];
-
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const toggleEmail = useCallback((id: string) => {
@@ -59,18 +82,17 @@ export default function GmailPicker({
   const selectedEmails = emails.filter((e) => selectedIds.has(e.id));
 
   const handleConfirm = () => {
-    onConfirm?.(selectedEmails);
+    if (status === 'success') {
+      handleGoFinish();
+    }
+    handleConfirmEmails(selectedEmails);
   };
 
   const renderEmailRow = ({ item }: { item: EmailData }) => (
-    <EmailRow
-      email={item}
-      isSelected={selectedIds.has(item.id)}
-      onToggle={toggleEmail}
-    />
+    <EmailRow email={item} isSelected={selectedIds.has(item.id)} onToggle={toggleEmail} />
   );
-    
-    const router = useRouter();
+
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
@@ -130,12 +152,21 @@ export default function GmailPicker({
 
       <View style={styles.footer}>
         <TouchableOpacity
-          onPress={handleConfirm}
-          disabled={selectedIds.size === 0}
           style={[styles.confirmBtn, selectedIds.size === 0 && styles.confirmBtnDisabled]}
-          activeOpacity={0.8}
+          onPress={handleConfirm}
+          disabled={selectedIds.size === 0 || isFetching}
         >
-          <Text style={styles.confirmBtnText}>{selectedIds.size === 0 ? 'Pick some emails!' : `Process ${selectedIds.size} Items →`}</Text>
+          {status === 'idle' ? (
+            <Text style={styles.confirmBtnText}>
+              {selectedIds.size === 0 ? 'Pick some emails!' : `Process ${selectedIds.size} Items →`}
+            </Text>
+          ) : (
+            <></>
+          )}
+
+          {status === 'processing' ? <ActivityIndicator color="#fff" /> : <></>}
+          {status === 'success' ? <Text style={styles.buttonText}>Success! Continue</Text> : <></>}
+          {status === 'fail' ? <Text style={styles.confirmBtnText}>Extraction Failed. Try Again.</Text> : <></>}
         </TouchableOpacity>
       </View>
     </View>
@@ -147,6 +178,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F0F4F8',
   },
+  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 
   topBar: {
     flexDirection: 'row',
@@ -265,6 +297,11 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '800',
     letterSpacing: 0.2,
+  },
+
+  buttonSuccess: {
+    backgroundColor: '#1e8e3e',
+    shadowColor: '#1e8e3e',
   },
   loaderContainer: {
     flex: 1,

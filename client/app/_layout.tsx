@@ -4,10 +4,19 @@ import React from 'react';
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
-import { AuthProvider } from './context';
+import { AuthProvider } from '../components/context';
 import { CalendarProvider } from '@/components/calendar-context';
+import { useState, useEffect } from 'react';
 
 export default function TabLayout() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
+
   return (
     <AuthProvider>
       <CalendarProvider>
@@ -24,14 +33,10 @@ export default function TabLayout() {
               tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
             }}
           />
-          <Tabs.Screen
-            name="explore"
-            options={{
-              title: 'Explore',
-              tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-            }}
-          />
-          <Tabs.Screen name="login" options={{ title: 'login' }} />
+          <Tabs.Screen name="test" options={{ title: 'test' }} />
+          <Tabs.Screen name="finish" options={{ title: 'finish' }} />
+          <Tabs.Screen name="uploader" options={{ title: 'uploader' }} />
+          <Tabs.Screen name="selector" options={{ title: 'selector' }} />
           <Tabs.Screen
             name="gmail-picker"
             options={{
