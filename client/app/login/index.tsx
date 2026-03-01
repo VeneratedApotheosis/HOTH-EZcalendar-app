@@ -7,13 +7,17 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function LoginButton() {
   const authProps = useAuth();
-  useProfiles(authProps.jwtToken?.sessionToken || null);
+  const props = useProfiles(authProps.jwtToken?.sessionToken || null);
   useAccessToken(authProps.jwtToken?.sessionToken || null);
   useCalendar(authProps.jwtToken?.sessionToken || null);
 
   return (
     <View style={styles.homepg}>
-      <Pressable style={styles.button} onPress={() => authProps.promptAsync()} disabled={!authProps.request}>
+      <Pressable
+        style={styles.button}
+        onPress={() => authProps.promptAsync()}
+        disabled={!authProps.request}
+      >
         {authProps.isLoading ? (
           <Text style={styles.buttonText}> loading </Text>
         ) : authProps.jwtToken ? (
@@ -28,7 +32,11 @@ export default function LoginButton() {
       </View>
       <View style={styles.tokenContainer}>
         <Text style={styles.label}>JWT Token:</Text>
-        <Text style={styles.tokenText}>{authProps.jwtToken ? authProps.jwtToken.sessionToken : 'No token yet'}</Text>
+        <Text style={styles.tokenText}>
+          {authProps.jwtToken
+            ? authProps.jwtToken.sessionToken
+            : "No token yet"}
+        </Text>
       </View>
     </View>
   );
@@ -37,41 +45,41 @@ export default function LoginButton() {
 const styles = StyleSheet.create({
   homepg: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 16,
   },
   button: {
     padding: 12,
-    backgroundColor: '#4285F4',
+    backgroundColor: "#4285F4",
     borderRadius: 6,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20,
   },
   buttonText: {
-    color: 'white',
-    fontWeight: '600',
+    color: "white",
+    fontWeight: "600",
   },
 
   tokenText: {
-    color: '#000000',
-    fontWeight: '600',
-    alignItems: 'center',
+    color: "#000000",
+    fontWeight: "600",
+    alignItems: "center",
     padding: 12,
   },
   tokenContainer: {
-    flexDirection: 'row', // Places items side-by-side
+    flexDirection: "row", // Places items side-by-side
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
-    overflow: 'hidden', // Ensures inner colored boxes don't spill outs
-    backgroundColor: 'white',
+    overflow: "hidden", // Ensures inner colored boxes don't spill outs
+    backgroundColor: "white",
   },
   label: {
-    backgroundColor: '#f0f0f0', // Light grey for the label background
+    backgroundColor: "#f0f0f0", // Light grey for the label background
     padding: 12,
     borderRightWidth: 1,
-    borderRightColor: '#ddd',
-    justifyContent: 'center',
+    borderRightColor: "#ddd",
+    justifyContent: "center",
   },
 });
 */
