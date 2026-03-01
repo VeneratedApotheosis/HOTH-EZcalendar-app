@@ -9,7 +9,7 @@ import {
   Dimensions,
   StyleSheet,
 } from "react-native";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+
 import { EmailRow, SelectedEmailCard } from "../components/gmail_components";
 
 
@@ -35,8 +35,7 @@ export default function GmailPicker({
   isLoading = false,
   onConfirm,
 }: GmailPickerProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
