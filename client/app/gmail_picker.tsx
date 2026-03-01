@@ -1,4 +1,6 @@
 import React, { useState, useCallback } from "react";
+import { EmailData } from "@/utility/types";
+
 import {
   View,
   Text,
@@ -11,31 +13,28 @@ import {
 } from "react-native";
 
 import { EmailRow, SelectedEmailCard } from "../components/gmail_components";
-
-
-export interface GmailEmail {
-  id: string;
-  sender: string;
-  senderEmail: string;
-  subject: string;
-  snippet: string;
-  date: string;
-  isRead: boolean;
-}
-
+import { AuthContext } from "@/app/context"; // Adjust path to your context
+import { useEmail } from "@/hooks/useEmail"; // Adjust path to your hook
+import { useContext } from "react";
 export interface GmailPickerProps {
-  emails?: GmailEmail[];
+  emails?: EmailData[];
   isLoading?: boolean;
-  onConfirm?: (selected: GmailEmail[]) => void;
+  onConfirm?: (selected: EmailData[]) => void;
 }
 
 
 export default function GmailPicker({
-  emails = MOCK_EMAILS, 
-  isLoading = false,
   onConfirm,
 }: GmailPickerProps) {
-  
+
+  const { jwtToken } = useContext(AuthContext);
+  const sessionToken = jwtToken?.sessionToken ?? null;
+
+  // 2. Fetch the emails using your hook
+  const { emails: fetchedData, isLoading } = useEmail(sessionToken);
+
+  // 3. Extract the array of messages (fallback to empty array if null)
+  const emails = fetchedData?.messages || [];
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -61,7 +60,7 @@ export default function GmailPicker({
     onConfirm?.(selectedEmails);
   };
 
-  const renderEmailRow = ({ item }: { item: GmailEmail }) => (
+  const renderEmailRow = ({ item }: { item: EmailData }) => (
     <EmailRow
       email={item}
       isSelected={selectedIds.has(item.id)}
@@ -306,7 +305,7 @@ const styles = StyleSheet.create({
 });
 
 
-export const MOCK_EMAILS: GmailEmail[] = [
+export const MOCK_EMAILS: EmailData[] = [
   {
     id: "1",
     sender: "Google Security",

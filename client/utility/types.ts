@@ -13,21 +13,20 @@ export interface AccessTokenObj {
   expiryDate: string;
 }
 
-export interface EmailMessage {
+export interface EmailData {
   id: string;
-  threadId: string;
-  from: string;
-  to: string;
+  sender: string;
+  senderEmail: string;
   subject: string;
-  date: string;
   snippet: string;
-  body: string;
+  date: string;
   isRead: boolean;
+  body?: string; // Add if needed for parsing later
 }
 export interface EmailObj {
   owner: string;
   name: string;
-  messages: EmailMessage[]; // Can hold raw Google API data if processed later
+  messages: EmailData[]; // Can hold raw Google API data if processed later
 }
 export interface FamilyProfileObjs {
   parent: ProfileObj;

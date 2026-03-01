@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [jwtToken, setJwtToken] = useState<JwtTokenObj | null>(null);
   const [familyProfiles, setFamilyProfiles] =
     useState<FamilyProfileObjs | null>(null);
-  const [calendarType, setCalendarType] = useState<CalendarView>("3");
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -33,8 +32,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           ]);
         if (storedJwt) setJwtToken(storedJwt);
         if (storedProfiles) setFamilyProfiles(storedProfiles);
-        if (storeCalendarType)
-          setCalendarType(storeCalendarType as CalendarView);
       } catch (err: any) {
         console.log("error as fuck: ", err.message);
       } finally {
