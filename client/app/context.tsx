@@ -13,6 +13,8 @@ export const AuthContext = createContext<AuthContextType>({
 
   familyProfiles: null,
   setFamilyProfiles: () => {},
+
+  logout: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -41,6 +43,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     hydrateContext();
   }, []);
 
+  const logout = () => {
+    try {
+      console.log("logoutstart")
+      // 1. clears global context state
+      setJwtToken(null);
+      setFamilyProfiles(null);
+
+      // 2. clears persistent storage
+      storage.removeSecure("jwt_token")
+      storage.remove("profiles")
+      storage.remove("calendar_type")
+      storage.remove("access_tokens") // From your previous code snippet
+
+    } catch (err: any) {
+      console.error("Logout failed: ", err.message);
+    }
+  };
+
   if (!isHydrated) return null;
 
   return (
@@ -50,6 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setJwtToken,
         familyProfiles,
         setFamilyProfiles,
+        logout,
       }}
     >
       {children}

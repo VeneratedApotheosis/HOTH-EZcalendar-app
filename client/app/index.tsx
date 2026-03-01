@@ -9,6 +9,7 @@ import { Link } from 'expo-router';
 import Parser from '@/components/Parser';
 import GmailDisplay from '@/components/gmail-display';
 import LoginButton from '@/components/login';
+import LogoutButton from '@/components/logout';
 
 import { Ionicons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
 
@@ -42,6 +43,7 @@ export default function HomeScreen() {
       {/* Login Button Area */}
       <View style={styles.loginButtonWrapper}>
         <LoginButton />
+        <LogoutButton />
       </View>
     </View>
   );
