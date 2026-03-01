@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Text, StyleSheet, View, Animated, Easing, SafeAreaView, Platform, useWindowDimensions } from 'react-native';
+import { Text, StyleSheet, View, Animated, Easing, SafeAreaView, Platform, useWindowDimensions, ScrollView } from 'react-native';
 import LoginButton from '@/components/login';
 import { GmailIcon, CalendarIcon, FlowArrow, ServiceBadge, PDFIcon, TextIcon } from '@/components/brand_icons';
 import { useFadeSlide } from '@/hooks/use_fade_slide';
@@ -33,16 +33,20 @@ export default function HomeScreen() {
 
   const animatedStyle = { transform: [{ scale: bounceAnim }] };
 
-  // Stable scale calculation
+  // Use a slight scale increase only for very large screens
   const iconScale = screenWidth > 1000 ? 1.1 : 1;
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* ── Background Blobs (Decoration) ── */}
       <View style={[styles.blob, styles.blob_one]} />
       <View style={[styles.blob, styles.blob_two]} />
+      <View style={[styles.blob, styles.blob_three]} />
+      <View style={[styles.blob, styles.blob_four]} />
 
+      {/* ── Main Wrapper with Constraints ── */}
       <View style={styles.mainWrapper}>
-        <View style={styles.inner}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.headerSection}>
             <Animated.View style={[styles.titleBlock, titleAnim]}>
               <Text style={styles.eyebrow}>WELCOME TO</Text>
@@ -62,7 +66,6 @@ export default function HomeScreen() {
               </Animated.View>
 
               <View style={styles.centerFlow}>
-                {/* Fixed size prop by ensuring it is a calculated number */}
                 <FlowArrow size={24 * iconScale} />
                 <View style={styles.aiTag}>
                   <Text style={styles.aiText}>AI</Text>
@@ -82,28 +85,45 @@ export default function HomeScreen() {
               <Text style={styles.loginHint}>POWERED BY GOOGLE CLOUD SECURITY</Text>
             </Animated.View>
           </View>
-        </View>
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F7FB', alignItems: 'center', justifyContent: 'center' },
-  mainWrapper: { width: '90%', maxWidth: 500, height: '100%', maxHeight: 850, zIndex: 10 },
-  inner: { flex: 1, alignItems: 'center', justifyContent: 'space-between', paddingVertical: 50 },
+  container: { flex: 1, backgroundColor: '#F4F7FB', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  
+  // ── Constraint Styles ──
+  mainWrapper: {
+      flex: 1,
+      width: '100%',
+      maxWidth: 600, // Limits width on desktop
+      zIndex: 10,
+      paddingHorizontal: 20,
+  },
+  scrollContent: {
+      flexGrow: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 30,
+      gap: 30,
+  },
+  
   headerSection: { alignItems: 'center', width: '100%' },
   titleBlock: { alignItems: 'center', marginBottom: 8 },
   eyebrow: { fontSize: 13, fontWeight: '800', color: '#7EB6FF', letterSpacing: 2 },
-  title: { fontSize: 48, fontWeight: '900', color: '#1E293B' },
+  title: { fontSize: 48, fontWeight: '900', color: '#1E293B', textAlign: 'center' },
   subtitle: { fontSize: 16, color: '#64748B', textAlign: 'center', lineHeight: 24, marginTop: 10, maxWidth: '90%' },
-  cardWrapper: { width: '100%', alignItems: 'center', justifyContent: 'center', flexShrink: 1 },
+  
+  cardWrapper: { width: '100%', alignItems: 'center', justifyContent: 'center' },
   flowCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 40,
-    paddingVertical: 35,
+    paddingVertical: 30,
+    paddingHorizontal: 10,
     width: '100%',
     ...Platform.select({
       ios: { shadowColor: '#7EB6FF', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.15, shadowRadius: 20 },
@@ -112,13 +132,18 @@ const styles = StyleSheet.create({
     }),
   },
   sideColumn: { flex: 1, alignItems: 'center', gap: 15 },
-  centerFlow: { width: 50, alignItems: 'center', gap: 10 },
+  centerFlow: { width: 60, alignItems: 'center', gap: 10 },
   aiTag: { backgroundColor: '#F0F7FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   aiText: { fontSize: 10, fontWeight: '900', color: '#7EB6FF' },
+  
   footerContainer: { width: '100%', alignItems: 'center' },
   loginWrap: { width: '100%', maxWidth: 400, alignItems: 'center', gap: 12 },
   loginHint: { fontSize: 10, color: '#94A3B8', fontWeight: '800', letterSpacing: 1 },
+  
+  // ── Updated Blob Styles ──
   blob: { position: 'absolute', zIndex: 1 },
   blob_one: { top: -40, right: -40, width: 300, height: 300, borderRadius: 150, backgroundColor: '#adc5f1', opacity: 0.4 },
   blob_two: { bottom: '5%', left: -80, width: 250, height: 250, borderRadius: 125, backgroundColor: '#f4bfc7', opacity: 0.4 },
+  blob_three: { top: '30%', left: -50, width: 150, height: 150, borderRadius: 75, backgroundColor: '#adc5f1', opacity: 0.3 },
+  blob_four: { bottom: '15%', right: -30, width: 200, height: 200, borderRadius: 100, backgroundColor: '#f4bfc7', opacity: 0.3 },
 });
