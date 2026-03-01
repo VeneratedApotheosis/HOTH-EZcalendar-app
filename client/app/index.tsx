@@ -27,7 +27,7 @@ export default function HomeScreen() {
           duration: 2000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, []);
 
@@ -40,10 +40,9 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <View style={[styles.blob, styles.blob_one]} />
       <View style={[styles.blob, styles.blob_two]} />
-      
+
       <View style={styles.mainWrapper}>
         <View style={styles.inner}>
-          
           <View style={styles.headerSection}>
             <Animated.View style={[styles.titleBlock, titleAnim]}>
               <Text style={styles.eyebrow}>WELCOME TO</Text>
@@ -64,7 +63,7 @@ export default function HomeScreen() {
 
               <View style={styles.centerFlow}>
                 {/* Fixed size prop by ensuring it is a calculated number */}
-                <FlowArrow size={24 * iconScale} /> 
+                <FlowArrow size={24 * iconScale} />
                 <View style={styles.aiTag}>
                   <Text style={styles.aiText}>AI</Text>
                 </View>
@@ -100,12 +99,17 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 16, color: '#64748B', textAlign: 'center', lineHeight: 24, marginTop: 10, maxWidth: '90%' },
   cardWrapper: { width: '100%', alignItems: 'center', justifyContent: 'center', flexShrink: 1 },
   flowCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 40, paddingVertical: 35, width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 40,
+    paddingVertical: 35,
+    width: '100%',
     ...Platform.select({
       ios: { shadowColor: '#7EB6FF', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.15, shadowRadius: 20 },
       android: { elevation: 10 },
-      web: { boxShadow: '0 10px 30px rgba(126, 182, 255, 0.15)' }
-    })
+      web: { boxShadow: '0 10px 30px rgba(126, 182, 255, 0.15)' },
+    }),
   },
   sideColumn: { flex: 1, alignItems: 'center', gap: 15 },
   centerFlow: { width: 50, alignItems: 'center', gap: 10 },
