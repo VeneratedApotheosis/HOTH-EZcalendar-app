@@ -18,11 +18,11 @@ export default function LoginButton() {
         disabled={!authProps.request}
       >
         {authProps.isLoading ? (
-          <Text style={styles.buttonText}> loading </Text>
+          <Text style={styles.buttonText}> Loading </Text>
         ) : authProps.jwtToken ? (
-          <Text style={styles.buttonText}> logged in as f </Text>
+          <Text style={styles.buttonText}> Logged in </Text>
         ) : (
-          <Text style={styles.buttonText}> login </Text>
+          <Text style={styles.buttonText}> Login </Text>
         )}
       </Pressable>
     </View>
@@ -37,9 +37,10 @@ const styles = StyleSheet.create({
   },
   button: {
     padding: 12,
-    backgroundColor: "#4285F4",
-    borderRadius: 6,
-    alignItems: "center",
+
+    backgroundColor: '#4285F4',
+    borderRadius: 8,
+    alignItems: 'center',
     marginBottom: 20,
   },
   buttonText: {

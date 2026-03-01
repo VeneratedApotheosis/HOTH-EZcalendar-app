@@ -44,6 +44,7 @@ export const EmailRow = React.memo(
   )
 );
 
+EmailRow.displayName = "EmailRow";
 
 export const SelectedEmailCard = ({
   email,
