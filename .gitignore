@@ -5,6 +5,7 @@ node_modules/
 
 # general excludes
 .idea
+*.env
 
 # Expo
 .expo/
@@ -47,3 +48,4 @@ app-example
 # generated native folders
 /ios
 /android
+server/.env
