@@ -20,6 +20,15 @@ export interface FamilyAccessTokenObjs {
   parent: AccessTokenObj;
   children: AccessTokenObj[]
 }
+export interface GmailItem {
+  subject: string;
+  Text: string;
+}
+export interface GmailItems {
+  mail: GmailItem[];
+}
+
+
 export type CalendarView = "M" | "W" | "3" | "2" | "1";
 export interface AuthContextType {
   jwtToken: JwtTokenObj | null;
@@ -27,9 +36,6 @@ export interface AuthContextType {
   
   familyProfiles: FamilyProfileObjs | null;
   setFamilyProfiles: (familyProfile : FamilyProfileObjs | null) => void;
-
-  calendarType: CalendarView;
-  setCalendarType: (calendarType: CalendarView) => void;
 }
 
 export interface DateContextType {

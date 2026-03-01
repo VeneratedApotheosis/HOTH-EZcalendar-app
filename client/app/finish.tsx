@@ -1,14 +1,12 @@
 import { Image } from "expo-image";
 import { Platform, StyleSheet, View } from "react-native";
 
-import { HelloWave } from "@/components/hello-wave";
-import ParallaxScrollView from "@/components/parallax-scroll-view";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Link } from "expo-router";
-
-export default function Parser() {
-  return <View style={{ height: 50 }}>PARSER</View>;
+export default function FinishScreen() {
+  return (
+    <View style={{ flex: 1, backgroundColor: "white", padding: 15 }}>
+      Finihs
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
