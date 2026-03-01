@@ -1,6 +1,7 @@
 import { StyleSheet, View, Text, TouchableOpacity, Dimensions } from "react-native";
 import { Link } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 // Get screen dimensions for responsiveness
 const { width, height } = Dimensions.get('window');
@@ -15,12 +16,15 @@ const calculatedWidth = (width - (PADDING_HORIZONTAL * 2) - BUTTON_GAP) / 2;
 const BUTTON_WIDTH = Math.min(calculatedWidth, MAX_BUTTON_WIDTH);
 
 export default function SelectorScreen() {
+    const router = useRouter();
   return (
     <View style={styles.container}>
       {/* ── Top Bar - Reduced Padding ── */}
       <View style={styles.topBar}>
         <View style={styles.topBarLeft}>
-          <View style={styles.gmailDot} />
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#334155" />
+          </TouchableOpacity>
           <Text style={styles.topBarTitle}>Upload Source</Text>
         </View>
       </View>

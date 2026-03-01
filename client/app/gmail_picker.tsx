@@ -13,9 +13,19 @@ import {
 } from "react-native";
 
 import { EmailRow, SelectedEmailCard } from "../components/gmail_components";
-import { AuthContext } from "@/app/context"; // Adjust path to your context
-import { useEmail } from "@/hooks/useEmail"; // Adjust path to your hook
-import { useContext } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+
+export interface GmailEmail {
+  id: string;
+  sender: string;
+  senderEmail: string;
+  subject: string;
+  snippet: string;
+  date: string;
+  isRead: boolean;
+}
+
 export interface GmailPickerProps {
   emails?: EmailData[];
   isLoading?: boolean;
@@ -67,13 +77,18 @@ export default function GmailPicker({
       onToggle={toggleEmail}
     />
   );
+    
+    const router = useRouter();
 
   return (
     <View style={styles.container}>
       {/* ── Header ── */}
       <View style={styles.topBar}>
         <View style={styles.topBarLeft}>
-          <View style={styles.gmailDot} />
+          {/* <View style={styles.gmailDot} /> */}
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#334155" />
+          </TouchableOpacity>
           <Text style={styles.topBarTitle}>Gmail Picker</Text>
         </View>
         <View style={styles.topBarCountContainer}>
