@@ -7,7 +7,6 @@ import { useAccessToken } from "./useAccessToken";
 
 export function useEmail(jwtToken: string | null) {
   const { getValidAccessToken } = useAccessToken(jwtToken);
-
   const [emails, setEmails] = useState<EmailObj | null>(() => {
     return storage.get("emails") || null;
   });
@@ -16,14 +15,19 @@ export function useEmail(jwtToken: string | null) {
 
   const fetchUserEmails = useCallback(async () => {
     if (!jwtToken) return;
+    console.log(jwtToken)
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const { accessToken } = await getValidAccessToken();
+      console.log("pre")
+      const accessToken = await getValidAccessToken();
+      console.log(accessToken)
       
-      const rawData = await fetchEmails(accessToken);
+      const accessTokenString = accessToken.parent.accessToken;
+
+      const rawData = await fetchEmails(accessTokenString);
       const processedData = processEmails(rawData);
 
       const formattedEmails: EmailObj = {
