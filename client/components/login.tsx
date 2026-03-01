@@ -41,11 +41,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#4285F4',
     borderRadius: 8,
     alignItems: 'center',
-
-    backgroundColor: "#4285F4",
-    borderRadius: 6,
-    alignItems: "center",
-
     marginBottom: 20,
   },
   buttonText: {
