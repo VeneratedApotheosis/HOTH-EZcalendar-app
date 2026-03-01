@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { GmailEmail } from "../app/gmail_picker"; 
+import { EmailData } from "@/utility/types";
 
 
 export const EmailRow = React.memo(
@@ -9,7 +9,7 @@ export const EmailRow = React.memo(
     isSelected,
     onToggle,
   }: {
-    email: GmailEmail;
+    email: EmailData;
     isSelected: boolean;
     onToggle: (id: string) => void;
   }) => (
@@ -50,7 +50,7 @@ export const SelectedEmailCard = ({
   email,
   onRemove,
 }: {
-  email: GmailEmail;
+  email: EmailData;
   onRemove: (id: string) => void;
 }) => (
   <View style={styles.selectedCard}>

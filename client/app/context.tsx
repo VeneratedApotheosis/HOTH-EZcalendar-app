@@ -13,13 +13,14 @@ export const AuthContext = createContext<AuthContextType>({
 
   familyProfiles: null,
   setFamilyProfiles: () => {},
+
+  logout: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [jwtToken, setJwtToken] = useState<JwtTokenObj | null>(null);
   const [familyProfiles, setFamilyProfiles] =
     useState<FamilyProfileObjs | null>(null);
-  const [calendarType, setCalendarType] = useState<CalendarView>("3");
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -33,8 +34,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           ]);
         if (storedJwt) setJwtToken(storedJwt);
         if (storedProfiles) setFamilyProfiles(storedProfiles);
-        if (storeCalendarType)
-          setCalendarType(storeCalendarType as CalendarView);
       } catch (err: any) {
         console.log("error as fuck: ", err.message);
       } finally {
@@ -43,6 +42,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
     hydrateContext();
   }, []);
+
+  const logout = () => {
+    try {
+      console.log("logoutstart")
+      // 1. clears global context state
+      setJwtToken(null);
+      setFamilyProfiles(null);
+
+      // 2. clears persistent storage
+      storage.removeSecure("jwt_token")
+      storage.remove("profiles")
+      storage.remove("calendar_type")
+      storage.remove("access_tokens") // From your previous code snippet
+
+    } catch (err: any) {
+      console.error("Logout failed: ", err.message);
+    }
+  };
 
   if (!isHydrated) return null;
 
@@ -53,6 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setJwtToken,
         familyProfiles,
         setFamilyProfiles,
+        logout,
       }}
     >
       {children}

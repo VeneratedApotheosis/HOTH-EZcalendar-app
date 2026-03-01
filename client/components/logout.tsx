@@ -1,30 +1,20 @@
-import { useAccessToken } from "@/hooks/useAccessToken";
-import { useAuth } from "@/hooks/useAuth";
-import { useProfiles } from "@/hooks/useProfile";
+
 import { Pressable, StyleSheet, Text, View } from "react-native";
-export default function LoginButton() {
-  const authProps = useAuth();
-  useProfiles(authProps.jwtToken?.sessionToken || null);
-  useAccessToken(authProps.jwtToken?.sessionToken || null);
+import { useContext } from "react";
+import { AuthContext } from "@/app/context";
+export default function LogoutButton() {
+  const { logout } = useContext(AuthContext);
 
   return (
     <View style={styles.container}>
       <Pressable
         style={({ pressed }) => [
           styles.button,
-          pressed && styles.buttonPressed, // Adds a subtle press effect
-          !authProps.request && styles.buttonDisabled,
+          pressed && styles.buttonPressed
         ]}
-        onPress={() => authProps.promptAsync()}
-        disabled={!authProps.request}
+        onPress={logout}
       >
-        {authProps.isLoading ? (
-          <Text style={styles.buttonText}>Loading...</Text>
-        ) : authProps.jwtToken ? (
-          <Text style={styles.buttonText}>Logged in!</Text>
-        ) : (
-          <Text style={styles.buttonText}>Login</Text>
-        )}
+        <Text style={styles.buttonText}>LOGOUT</Text>
       </Pressable>
     </View>
   );

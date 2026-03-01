@@ -15,10 +15,12 @@ export function useAccessToken(jwtToken: string | null) {
 
     try {
       //Fetch from Backend
-      const data = await fetchFamilyAccessTokens(jwtToken)
+      const data = await fetchFamilyAccessTokens(jwtToken);
       
-      //Update Local Storage
-      storage.save("access_tokens", data);
+      // Update Local Storage ONLY if data actually exists
+      if (data) {
+        storage.save("access_tokens", data);
+      }
       return data;
     } catch (err: any) {
       console.error("Backend Profile Fetch Error:", err);
