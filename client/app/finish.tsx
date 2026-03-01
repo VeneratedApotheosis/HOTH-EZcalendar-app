@@ -4,44 +4,45 @@ import { useRouter } from 'expo-router';
 import CalendarEvent from '@/components/calendar-event';
 
 export default function FinishScreen() {
-  const router = useRouter(); // Initialize the router
+  const router = useRouter();
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
 
   const handleAddToCalendar = () => {
     setStatus('loading');
-    // Simulate API call
     setTimeout(() => {
       setStatus('success');
     }, 2000);
   };
 
   const handleGoHome = () => {
-    // Navigate back to the index screen
     router.replace('/');
   };
 
   return (
     <View style={styles.mainContainer}>
-      <Text style={styles.headerText}>New Events:</Text>
+      {/* Header "Blob" Container */}
+      <View style={styles.topBar}>
+        <View style={styles.topBarLeft}>
+          <View style={styles.gmailDot} />
+          <Text style={styles.topBarTitle}>New Events:</Text>
+        </View>
+      </View>
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.calendarEventContainer}>
           <CalendarEvent title={'Eating'} time={'2pm - 4pm'} color={'#bae1ff'} />
           <CalendarEvent title={'Meeting?'} time={'8pm - 10pm'} color={'#bae1ff'} />
           <CalendarEvent title={'A hackathon'} time={'3pm - 7pm'} color={'#bae1ff'} />
-          <CalendarEvent title={'A hackathon'} time={'3pm - 7pm'} color={'#bae1ff'} />
-          <CalendarEvent title={'Club Meeting'} time={'10am - 7pm'} color={'#bae1ff'} />
-          <CalendarEvent title={'Scrub'} time={'7pm - 8pm'} color={'#bae1ff'} />
         </View>
       </ScrollView>
 
+      {/* Persistent Bottom Button */}
       <View style={styles.buttonContainer}>
         {status !== 'success' ? (
-          // INITIAL BUTTON (Add to Calendar)
           <TouchableOpacity style={styles.button} onPress={handleAddToCalendar} disabled={status === 'loading'}>
             {status === 'loading' ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Add to Google Calendar</Text>}
           </TouchableOpacity>
         ) : (
-          // SUCCESS STATE BUTTON (Go Home)
           <TouchableOpacity style={[styles.button, styles.buttonSuccess]} onPress={handleGoHome}>
             <Text style={styles.buttonText}>✓ Success! Return Home</Text>
           </TouchableOpacity>
@@ -54,16 +55,32 @@ export default function FinishScreen() {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
+    backgroundColor: '#f2f2f2', // Light grey background for the "main" area
+  },
+  headerBlob: {
     backgroundColor: 'white',
+    paddingTop: 60, // Adjust based on status bar height
+    paddingBottom: 20,
+    borderBottomLeftRadius: 30, // The rounded corners at the bottom
+    borderBottomRightRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    // Adding a subtle shadow to make the "blob" look elevated
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 5,
+    zIndex: 1, // Ensures it stays on top of the scroll content
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1a1a1a',
   },
   scrollContent: {
     padding: 20,
-  },
-  headerText: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#3c4043',
-    textAlign: 'center',
+    paddingTop: 30, // Space between the blob and the first card
   },
   calendarEventContainer: {
     flexDirection: 'column',
@@ -71,25 +88,78 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     padding: 20,
-    paddingBottom: 40, // Extra padding for modern iPhones (Safe Area)
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: 'white',
+    paddingBottom: 40,
+    backgroundColor: 'transparent', // Keep it clean on the grey background
   },
   button: {
     backgroundColor: '#1a73e8',
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     height: 56,
+    shadowColor: '#1a73e8',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   buttonSuccess: {
-    backgroundColor: '#1e8e3e', // Green for success
+    backgroundColor: '#1e8e3e',
+    shadowColor: '#1e8e3e',
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    backgroundColor: '#FFFFFF',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 5,
+    zIndex: 10,
+
+    height: 76,
+  },
+  topBarLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  gmailDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FF8A80', // Pastel Coral
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  topBarTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#334155',
+    letterSpacing: -0.5,
+  },
+  topBarCount: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#7EB6FF',
+    backgroundColor: '#EBF4FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  topBarCountContainer: {
+    backgroundColor: '#F0F7FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
 });
