@@ -3,70 +3,67 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCalendar } from "@/hooks/useCalendar";
 import { useProfiles } from "@/hooks/useProfile";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-
 export default function LoginButton() {
   const authProps = useAuth();
   useProfiles(authProps.jwtToken?.sessionToken || null);
   useAccessToken(authProps.jwtToken?.sessionToken || null);
   useCalendar(authProps.jwtToken?.sessionToken || null);
-
   return (
-    <View style={styles.homepg}>
+    <View style={styles.container}>
       <Pressable
-        style={styles.button}
+        style={({ pressed }) => [
+          styles.button,
+          pressed && styles.buttonPressed, // Adds a subtle press effect
+          !authProps.request && styles.buttonDisabled,
+        ]}
         onPress={() => authProps.promptAsync()}
         disabled={!authProps.request}
       >
         {authProps.isLoading ? (
-          <Text style={styles.buttonText}> Loading </Text>
+          <Text style={styles.buttonText}>Loading...</Text>
         ) : authProps.jwtToken ? (
-          <Text style={styles.buttonText}> Logged in </Text>
+          <Text style={styles.buttonText}>Logged in!</Text>
         ) : (
-          <Text style={styles.buttonText}> Login </Text>
+          <Text style={styles.buttonText}>Login</Text>
         )}
       </Pressable>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
-  homepg: {
-    flex: 1,
-    backgroundColor: "white",
-    padding: 16,
+  container: {
+    // Removed flex: 1 and backgroundColor to allow it to be
+    // placed inside another View properly
+    width: '100%',
+    padding: 0,
   },
   button: {
-    padding: 12,
-
-    backgroundColor: '#4285F4',
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 30,
+    backgroundColor: '#4285F4', // Google Blue
+    borderRadius: 20,           // Fully rounded
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'center',
+    width: '100%',
+    
+    shadowColor: "#4285F4",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8, // Android shadow
+  },
+  buttonPressed: {
+    opacity: 0.8, // Slightly fades when pressed
+    transform: [{ scale: 0.98 }], // Slightly shrinks when pressed
+  },
+  buttonDisabled: {
+    backgroundColor: '#A0A0A0',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   buttonText: {
     color: "white",
+    fontSize: 18,
     fontWeight: "600",
-  },
-
-  tokenText: {
-    color: "#000000",
-    fontWeight: "600",
-    alignItems: "center",
-    padding: 12,
-  },
-  tokenContainer: {
-    flexDirection: "row", // Places items side-by-side
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    overflow: "hidden", // Ensures inner colored boxes don't spill outs
-    backgroundColor: "white",
-  },
-  label: {
-    backgroundColor: "#f0f0f0", // Light grey for the label background
-    padding: 12,
-    borderRightWidth: 1,
-    borderRightColor: "#ddd",
-    justifyContent: "center",
   },
 });

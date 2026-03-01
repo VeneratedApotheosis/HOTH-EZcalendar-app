@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Text, Platform, StyleSheet, View } from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
@@ -17,92 +17,100 @@ export default function HomeScreen() {
     <View style={styles.container}>
       {/* Title and Description */}
       <View style={styles.header}>
-        <ThemedText type="title" style={styles.title}>
-          Name
-        </ThemedText>
-        <ThemedText style={styles.description}>This is the app description that sits below the title.</ThemedText>
-
-        {/* Icons */}
+        <Text style={styles.title}>EZcalendar</Text>
+        <Text style={styles.description}>
+          Parse your emails and documents to automatically populate your calendar.
+        </Text>
+        
+        {/* Icons Card - Now Styled with Modern Look */}
         <View style={styles.mainIconContainer}>
-          {/* Stacked Icons */}
-          <View style={styles.leftStack}>
-            <MaterialCommunityIcons name="email-outline" size={32} color="#4285F4" style={styles.iconSpacing} />
-            <FontAwesome name="file-text-o" size={30} color="#4285F4" style={styles.iconSpacing} />
-            <FontAwesome name="file-pdf-o" size={30} color="#4285F4" />
-          </View>
-
-          {/* Arrow */}
-          <Ionicons name="arrow-forward-outline" size={32} color="#000" style={styles.arrow} />
-
-          {/* Calendar Icon */}
-          <View style={styles.calendar}>
-            <FontAwesome name="calendar" size={64} color="#4285F4" />
-          </View>
+            
+            {/* Stacked Icons */}
+            <View style={styles.leftStack}>
+              <MaterialCommunityIcons name="email-outline" size={32} color="#4285F4" style={styles.iconSpacing} />
+              <FontAwesome name="file-text-o" size={30} color="#4285F4" style={styles.iconSpacing} />
+              <FontAwesome name="file-pdf-o" size={30} color="#4285F4" />
+            </View>
+            {/* Arrow */}
+            <Ionicons name="arrow-forward-outline" size={32} color="#A0A0A0" style={styles.arrow} />
+            {/* Calendar Icon */}
+            <View style={styles.calendar}>
+              <FontAwesome name="calendar" size={64} color="#4285F4" />
+            </View>
         </View>
+      </View>
+      {/* Login Button Area */}
+      <View style={styles.loginButtonWrapper}>
+        <LoginButton />
       </View>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
-    paddingHorizontal: 20,
-    paddingVertical: 80,
-    justifyContent: 'space-between',
+    backgroundColor: "#F8F9FA", // Light, modern background color
+    paddingHorizontal: 24,
+    paddingVertical: 60,
+    justifyContent: "space-between",
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
+    marginTop: 40,
     gap: 16,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#000',
+    fontSize: 36,
+    fontWeight: "800", // Extra bold for visual hierarchy
+    color: "#1A1A1A",
+    letterSpacing: -0.5,
+    marginBottom: 8,
   },
   description: {
-    marginTop: 10,
-    marginLeft: 20,
-    marginRight: 20,
-    fontSize: 18,
-    textAlign: 'center',
-    color: '#666',
+    fontSize: 16,
+    textAlign: "center",
+    color: "#5F6368",
+    lineHeight: 24, // Improves readability
+    paddingHorizontal: 10,
     marginBottom: 30,
   },
-
+    
   mainIconContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 20,
     width: '100%',
-
-    // card styles, can remove if it looks bad
-    backgroundColor: '#F9F9F9',
-    borderRadius: 16,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
+    
+    // Modern Card Styles
+    backgroundColor: '#FFFFFF', // Solid white card
+    borderRadius: 24,           // More rounded corners
+    padding: 30,                // Increased padding
+    
+    // Shadows for Depth (makes it look like a physical card)
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,               // Android shadow
   },
-
+  
   leftStack: {
     flexDirection: 'column',
-    marginRight: 20,
+    marginRight: 25,
     alignItems: 'center',
   },
   iconSpacing: {
-    marginBottom: 10,
+    marginBottom: 15,
   },
   arrow: {
-    marginRight: 20,
+    marginRight: 25,
   },
   calendar: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loginButton: {
-    width: '100%',
+  loginButtonWrapper: {
+    width: "100%",
+    alignItems: 'center',
   },
 });
