@@ -60,7 +60,7 @@ export default function UploaderScreen() {
 
     if (response.ok) {
       alert("Data uploaded successfully!");
-      router.back();
+      router.push("/selector");
     } else {
       throw new Error("Upload failed");
     }
@@ -80,7 +80,7 @@ export default function UploaderScreen() {
       {/* ── Top Bar ── */}
       <View style={styles.topBar}>
         <View style={styles.topBarLeft}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.push("/selector")}>
             <Ionicons name="arrow-back" size={24} color="#334155" />
           </TouchableOpacity>
           <Text style={styles.topBarTitle}>File Uploader</Text>
