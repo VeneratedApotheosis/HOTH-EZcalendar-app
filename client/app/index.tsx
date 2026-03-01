@@ -7,11 +7,12 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Link } from "expo-router";
 import Parser from "@/components/Parser";
+import LoginButton from "@/components/login";
 
 export default function HomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "white", padding: 15 }}>
-      bruh
+      <LoginButton />
       <Parser></Parser>
     </View>
   );
