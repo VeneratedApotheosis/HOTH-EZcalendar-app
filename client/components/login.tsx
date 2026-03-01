@@ -11,7 +11,6 @@ export default function LoginButton() {
 
   useProfiles(authProps.jwtToken?.sessionToken || null);
   useAccessToken(authProps.jwtToken?.sessionToken || null);
-  useCalendar(authProps.jwtToken?.sessionToken || null);
 
   // Watch for successful login and redirect
   useEffect(() => {
