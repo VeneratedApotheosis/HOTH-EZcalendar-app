@@ -1,3 +1,17 @@
+//AUTH TYPES
+export interface AuthContextType {
+  jwtToken: JwtTokenObj | null;
+  setJwtToken: (jwtToken : JwtTokenObj | null) => void;
+  
+  familyProfiles: FamilyProfileObjs | null;
+  setFamilyProfiles: (familyProfile : FamilyProfileObjs | null) => void;
+
+  logout: () => void;
+}
+
+
+
+//SIMPLE DATA OBJECTS
 export interface JwtTokenObj {
   sessionToken: string;
   expiryDate: string;
@@ -23,6 +37,8 @@ export interface EmailData {
   isRead: boolean;
   body?: string; // Add if needed for parsing later
 }
+
+//PARENT DATA OBJECTS
 export interface EmailObj {
   owner: string;
   name: string;
@@ -36,6 +52,8 @@ export interface FamilyAccessTokenObjs {
   parent: AccessTokenObj;
   children: AccessTokenObj[]
 }
+
+//GMAIL ITEMS
 export interface GmailItem {
   subject: string;
   Text: string;
@@ -44,16 +62,8 @@ export interface GmailItems {
   mail: GmailItem[];
 }
 
-
+//CALENDAR TYPES
 export type CalendarView = "M" | "W" | "3" | "2" | "1";
-export interface AuthContextType {
-  jwtToken: JwtTokenObj | null;
-  setJwtToken: (jwtToken : JwtTokenObj | null) => void;
-  
-  familyProfiles: FamilyProfileObjs | null;
-  setFamilyProfiles: (familyProfile : FamilyProfileObjs | null) => void;
-}
-
 export interface DateContextType {
   curDate: Date,
   setCurDate: (curDate: Date) => void;
