@@ -14,11 +14,11 @@ export default function LoginButton() {
     <View style={styles.homepg}>
       <Pressable style={styles.button} onPress={() => authProps.promptAsync()} disabled={!authProps.request}>
         {authProps.isLoading ? (
-          <Text style={styles.buttonText}> loading </Text>
+          <Text style={styles.buttonText}> Loading </Text>
         ) : authProps.jwtToken ? (
-          <Text style={styles.buttonText}> logged in as f </Text>
+          <Text style={styles.buttonText}> Logged in </Text>
         ) : (
-          <Text style={styles.buttonText}> login pls. </Text>
+          <Text style={styles.buttonText}> Login </Text>
         )}
       </Pressable>
 
