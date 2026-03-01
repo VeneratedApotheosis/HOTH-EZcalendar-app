@@ -32,22 +32,45 @@ export default function UploaderScreen() {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile && !pastedText) return;
+  if (!selectedFile && !pastedText) return;
 
-    setIsLoading(true);
-    // ── Simulate Upload Process ──
+  setIsLoading(true);
+
+  try {
+    const formData = new FormData();
+
     if (selectedFile) {
-        console.log("Uploading file:", selectedFile.name);
-    } else if (pastedText) {
-        console.log("Uploading pasted text of length:", pastedText.length);
+      // For React Native File Uploads, we need this specific object structure
+      formData.append("file", {
+        uri: selectedFile.uri,
+        name: selectedFile.name,
+        type: selectedFile.mimeType || "application/octet-stream",
+      } as any);
+    } else {
+      formData.append("content", pastedText);
     }
-    
-    setTimeout(() => {
-      setIsLoading(false);
+
+    const response = await fetch("YOUR_BACKEND_URL/upload", {
+      method: "POST",
+      body: formData,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    if (response.ok) {
       alert("Data uploaded successfully!");
       router.back();
-    }, 2000);
-  };
+    } else {
+      throw new Error("Upload failed");
+    }
+  } catch (error) {
+    console.error("Upload Error:", error);
+    alert("Something went wrong during upload.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <KeyboardAvoidingView
@@ -77,7 +100,7 @@ export default function UploaderScreen() {
           </Text>
           {selectedFile && (
             <Text style={styles.fileDetails}>
-              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+              {((selectedFile.size ?? 0) / 1024 / 1024).toFixed(2)} MB
             </Text>
           )}
         </TouchableOpacity>
