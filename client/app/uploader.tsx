@@ -217,7 +217,7 @@ export default function UploaderScreen() {
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={styles.topBar}>
-            <TouchableOpacity onPress={() => router.back()} hitSlop={20}>
+            <TouchableOpacity onPress={() => router.push('/selector')} hitSlop={20}>
               <Ionicons name="arrow-back" size={26} color="#334155" />
             </TouchableOpacity>
             <Text style={styles.topBarTitle}>File Uploader</Text>
