@@ -1,19 +1,12 @@
-
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useContext } from "react";
-import { AuthContext } from "@/app/context";
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useContext } from 'react';
+import { AuthContext } from '@/components/context';
 export default function LogoutButton() {
   const { logout } = useContext(AuthContext);
 
   return (
     <View style={styles.container}>
-      <Pressable
-        style={({ pressed }) => [
-          styles.button,
-          pressed && styles.buttonPressed
-        ]}
-        onPress={logout}
-      >
+      <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]} onPress={logout}>
         <Text style={styles.buttonText}>LOGOUT</Text>
       </Pressable>
     </View>
@@ -30,12 +23,12 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 30,
     backgroundColor: '#4285F4', // Google Blue
-    borderRadius: 20,           // Fully rounded
+    borderRadius: 20, // Fully rounded
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    
-    shadowColor: "#4285F4",
+
+    shadowColor: '#4285F4',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
@@ -51,8 +44,8 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   buttonText: {
-    color: "white",
+    color: 'white',
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
   },
 });

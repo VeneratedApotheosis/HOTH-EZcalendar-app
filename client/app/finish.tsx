@@ -41,7 +41,7 @@ export default function FinishScreen() {
                 key={`${event.title}-${index}`} // Unique key for React
                 title={event.title}
                 // Combining Date and Time for the display if needed
-                time={`${event.date} @ ${event.time}`}
+                time={`${event.StartTime} - ${event.EndTime}`}
                 color={colors[index % colors.length]}
               />
             ))
