@@ -98,8 +98,8 @@ export const fetchEmails = async (accessToken: string) => {
 };
 
 //calendar writing
-export const addEventToGoogleCalendar = async ( accessToken : string, eventDetails : EventDetails) => {
-  const { title, description, location, startTime, endTime} = eventDetails;
+export const addEventToGoogleCalendar = async (accessToken: string, eventDetails: EventDetails) => {
+  const { title, description, location, startTime, endTime } = eventDetails;
 
   const event = {
     summary: title,
@@ -107,7 +107,7 @@ export const addEventToGoogleCalendar = async ( accessToken : string, eventDetai
     description: description,
     start: {
       dateTime: startTime, // Must be ISO string: 2023-10-25T10:00:00Z
-      timeZone: 'UTC',     // just do
+      timeZone: 'UTC', // just do
     },
     end: {
       dateTime: endTime,
@@ -177,6 +177,7 @@ export const fetchGeminiPDF = async (result: DocumentPicker.DocumentPickerResult
 
     // Now send the clean base64 string to your backend
     const events = await fetchGeminiText(base64, true);
+    return events;
   } catch (error) {
     console.error('PDF Error:', error);
   }
