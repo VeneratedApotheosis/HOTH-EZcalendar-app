@@ -148,109 +148,110 @@ export default function UploaderScreen() {
       </View>
 
       {/* ── Content Layer (Higher zIndex) ── */}
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.container}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+      >
+        {/* ── Top Bar ── */}
+        <View style={StyleSheet.flatten([styles.topBar, { paddingTop: Platform.OS === 'ios' ? 50 : 20 }])}>
+          <TouchableOpacity onPress={() => router.push("/selector")} hitSlop={20}>
+            <Ionicons name="arrow-back" size={26} color="#334155" />
+          </TouchableOpacity>
+          <Text style={styles.topBarTitle}>File Uploader</Text>
+          <View style={{ width: 26 }} /> {/* Spacer for alignment */}
+        </View>
+
+        {/* ── Main Content Area - Scrollable ── */}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
         >
-          {/* ── Top Bar ── */}
-          <View style={StyleSheet.flatten([styles.topBar, { paddingTop: Platform.OS === 'ios' ? 50 : 20 }])}>
-            <TouchableOpacity onPress={() => router.push("/selector")} hitSlop={20}>
-              <Ionicons name="arrow-back" size={26} color="#334155" />
-            </TouchableOpacity>
-            <Text style={styles.topBarTitle}>File Uploader</Text>
-            <View style={{ width: 26 }} /> {/* Spacer for alignment */}
-          </View>
-
-          {/* ── Main Content Area - Scrollable ── */}
-          <ScrollView contentContainerStyle={styles.scrollContent}>
-            <View style={StyleSheet.flatten([styles.centerWrapper, { maxWidth: contentMaxWidth, paddingHorizontal: horizontalPadding }])}>
-              
-              <View style={styles.headerArea}>
-                <Text style={styles.headerTitle}>Upload Document</Text>
-                <Text style={styles.headerSubtitle}>Choose a file or provide text</Text>
-              </View>
-
-              {/* ── File Selection Area ── */}
-              <TouchableOpacity
-                style={StyleSheet.flatten([
-                  styles.fileDropZone,
-                  selectedFile && { borderColor: "#7EB6FF", borderStyle: 'solid', borderWidth: 3 },
-                  isSmallHeight && { paddingVertical: 30 }
-                ])}
-                onPress={pickDocument}
-                activeOpacity={0.7}
-              >
-                <View style={StyleSheet.flatten([
-                  styles.iconCircle,
-                  isSmallHeight && { width: 60, height: 60, marginBottom: 10 }
-                ])}>
-                  <Ionicons
-                    name={selectedFile ? "document-text" : "cloud-upload-outline"}
-                    size={isSmallHeight ? 32 : 44}
-                    color={selectedFile ? "#7EB6FF" : "#94A3B8"}
-                  />
-                </View>
-                <Text style={styles.dropZoneText} numberOfLines={1}>
-                  {selectedFile ? selectedFile.name : "Tap to select PDF/TXT"}
-                </Text>
-                {selectedFile && (
-                  <Text style={styles.fileDetails}>
-                    {((selectedFile.size ?? 0) / 1024 / 1024).toFixed(2)} MB
-                  </Text>
-                )}
-              </TouchableOpacity>
-
-              <Text style={styles.orText}>OR</Text>
-
-              {/* ── Text Input Area ── */}
-              <TextInput
-                style={StyleSheet.flatten([
-                  styles.textArea,
-                  { flex: isSmallHeight ? 0.6 : 0.8 } // Shrinks input on small screens
-                ])}
-                multiline
-                numberOfLines={6}
-                placeholder="Paste your text or syllabus content here..."
-                value={pastedText}
-                onChangeText={(text) => {
-                  setPastedText(text);
-                  if (text.length > 0) setSelectedFile(null); // Clear file if text is typed
-                }}
-                textAlignVertical="top"
-                placeholderTextColor="#94A3B8"
-              />
+          <View style={StyleSheet.flatten([styles.centerWrapper, { maxWidth: contentMaxWidth, paddingHorizontal: horizontalPadding }])}>
+            
+            <View style={styles.headerArea}>
+              <Text style={styles.headerTitle}>Upload Document</Text>
+              <Text style={styles.headerSubtitle}>Choose a file or provide text</Text>
             </View>
-          </ScrollView>
 
-          {/* ── Footer / Action Button ── */}
-          <View style={StyleSheet.flatten([
-            styles.footer,
-            { paddingHorizontal: horizontalPadding, maxWidth: contentMaxWidth }
-          ])}>
+            {/* ── File Selection Area ── */}
             <TouchableOpacity
-              onPress={handleUpload}
-              disabled={(!selectedFile && !pastedText) || isLoading}
               style={StyleSheet.flatten([
-                styles.confirmBtn,
-                (!selectedFile && !pastedText || isLoading) && styles.confirmBtnDisabled,
+                styles.fileDropZone,
+                selectedFile && { borderColor: "#7EB6FF", borderStyle: 'solid', borderWidth: 3 },
+                isSmallHeight && { paddingVertical: 30 }
               ])}
-              activeOpacity={0.8}
+              onPress={pickDocument}
+              activeOpacity={0.7}
             >
-              {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={styles.confirmBtnText}>
-                  {selectedFile || pastedText ? "Upload Data →" : "Select file or paste text"}
+              <View style={StyleSheet.flatten([
+                styles.iconCircle,
+                isSmallHeight && { width: 60, height: 60, marginBottom: 10 }
+              ])}>
+                <Ionicons
+                  name={selectedFile ? "document-text" : "cloud-upload-outline"}
+                  size={isSmallHeight ? 32 : 44}
+                  color={selectedFile ? "#7EB6FF" : "#94A3B8"}
+                />
+              </View>
+              <Text style={styles.dropZoneText} numberOfLines={1}>
+                {selectedFile ? selectedFile.name : "Tap to select PDF/TXT"}
+              </Text>
+              {selectedFile && (
+                <Text style={styles.fileDetails}>
+                  {((selectedFile.size ?? 0) / 1024 / 1024).toFixed(2)} MB
                 </Text>
               )}
             </TouchableOpacity>
+
+            <Text style={styles.orText}>OR</Text>
+
+            {/* ── Text Input Area ── */}
+            <TextInput
+              style={StyleSheet.flatten([
+                styles.textArea,
+                { flex: isSmallHeight ? 0.6 : 0.8 } // Shrinks input on small screens
+              ])}
+              multiline
+              numberOfLines={6}
+              placeholder="Paste your text or syllabus content here..."
+              value={pastedText}
+              onChangeText={(text) => {
+                setPastedText(text);
+                if (text.length > 0) setSelectedFile(null); // Clear file if text is typed
+              }}
+              textAlignVertical="top"
+              placeholderTextColor="#94A3B8"
+            />
           </View>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
+        </ScrollView>
+
+        {/* ── Footer / Action Button ── */}
+        <View style={StyleSheet.flatten([
+          styles.footer,
+          { paddingHorizontal: horizontalPadding, maxWidth: contentMaxWidth }
+        ])}>
+          <TouchableOpacity
+            onPress={handleUpload}
+            disabled={(!selectedFile && !pastedText) || isLoading}
+            style={StyleSheet.flatten([
+              styles.confirmBtn,
+              (!selectedFile && !pastedText || isLoading) && styles.confirmBtnDisabled,
+            ])}
+            activeOpacity={0.8}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.confirmBtnText}>
+                {selectedFile || pastedText ? "Upload Data →" : "Select file or paste text"}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </View>
   );
-}
+} // ── CLOSED THE FUNCTION HERE ──
 
 const styles = StyleSheet.create({
   root: {
