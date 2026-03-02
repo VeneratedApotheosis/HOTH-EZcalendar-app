@@ -87,6 +87,8 @@ export default function GmailPicker() {
       {/* ── Top Bar ── */}
       <View style={styles.topBar}>
         <View style={styles.topBarLeft}>
+          {/* <View style={styles.gmailDot} /> */}
+          <TouchableOpacity onPress={() => router.push('/selector')}>
           <TouchableOpacity onPress={() => router.push("/selector")}>
             <Ionicons name="arrow-back" size={24} color="#334155" />
           </TouchableOpacity>

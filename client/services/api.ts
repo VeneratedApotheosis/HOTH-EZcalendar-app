@@ -1,4 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import * as DocumentPicker from 'expo-document-picker';
+import { File } from 'expo-file-system';
+import { Platform } from 'react-native';
 
 //Backend Fetching
 export const fetchJwtToken = async (authCode: string, codeVerifier: string, redirectUri: string) => {
@@ -94,8 +97,8 @@ export const fetchEmails = async (accessToken: string) => {
 };
 
 //calendar writing
-export const addEventToGoogleCalendar = async ( accessToken : string, eventDetails : any) => {
-  const { title, description, location, startDate, endDate} = eventDetails;
+export const addEventToGoogleCalendar = async (accessToken: string, eventDetails: any) => {
+  const { title, description, location, startDate, endDate } = eventDetails;
 
   const event = {
     summary: title,
@@ -103,7 +106,7 @@ export const addEventToGoogleCalendar = async ( accessToken : string, eventDetai
     description: description,
     start: {
       dateTime: startDate, // Must be ISO string: 2023-10-25T10:00:00Z
-      timeZone: 'UTC',     // just do
+      timeZone: 'UTC', // just do
     },
     end: {
       dateTime: endDate,
@@ -112,17 +115,14 @@ export const addEventToGoogleCalendar = async ( accessToken : string, eventDetai
   };
 
   try {
-    const response = await fetch(
-      'https://www.googleapis.com/calendar/v3/calendars/primary/events',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(event),
-      }
-    );
+    const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(event),
+    });
 
     const data = await response.json();
 
@@ -136,10 +136,9 @@ export const addEventToGoogleCalendar = async ( accessToken : string, eventDetai
   } catch (error) {
     console.error('Network or API Error:', error);
   }
+};
 
-}
-
-export const fetchGemini = async (input: string, isPdf: boolean = false) => {
+export const fetchGeminiText = async (input: string, isPdf: boolean = false) => {
   try {
     //Send Req to Backend
     const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_LINK}/api/extract-events`, {
@@ -153,7 +152,9 @@ export const fetchGemini = async (input: string, isPdf: boolean = false) => {
 
     //Receive requests
     const data = await response.json();
+    if (data.error) throw Error(JSON.stringify(data));
     console.log('Extracted Events:', data);
+
     return data;
     Alert.alert('Success', `Found ${data.length} events!`);
   } catch (error) {
@@ -164,3 +165,41 @@ export const fetchGemini = async (input: string, isPdf: boolean = false) => {
   }
 };
 
+export const fetchGeminiPDF = async (result: DocumentPicker.DocumentPickerResult) => {
+  try {
+    if (result.canceled) return;
+
+    const { uri } = result.assets[0];
+
+    // Convert based on platform automatically
+    const base64 = await getBase64FromUri(uri);
+
+    // Now send the clean base64 string to your backend
+    const events = await fetchGeminiText(base64, true);
+  } catch (error) {
+    console.error('PDF Error:', error);
+  }
+};
+
+const getBase64FromUri = async (uri: string): Promise<string> => {
+  if (Platform.OS === 'web') {
+    // 1. Web Logic: Use standard fetch + FileReader
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = (reader.result as string).split(',')[1];
+        resolve(base64String);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } else {
+    // 2. Native Logic: Use Expo FileSystem (Stable path)
+    // This avoids the "validatePath" error by using the standard async method
+    return await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+  }
+};
