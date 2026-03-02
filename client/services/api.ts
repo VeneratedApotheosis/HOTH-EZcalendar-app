@@ -95,11 +95,11 @@ export const fetchEmails = async (accessToken: string) => {
 
 //calendar writing
 export const addEventToGoogleCalendar = async ( accessToken : string, eventDetails : any) => {
-  const { title, description, startDate, endDate} = eventDetails;
+  const { title, description, location, startDate, endDate} = eventDetails;
 
   const event = {
     summary: title,
-    location: "",
+    location: location,
     description: description,
     start: {
       dateTime: startDate, // Must be ISO string: 2023-10-25T10:00:00Z

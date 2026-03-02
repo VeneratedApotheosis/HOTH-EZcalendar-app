@@ -1,12 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-
+import { EventDetails } from '@/utility/types';
 // 1. Match the exact shape your backend returns
-export interface EventDetails {
-  title: string;
-  StartTime: string;
-  EndTime: string;
-  location: string;
-}
 
 interface CalendarContextType {
   events: EventDetails[];

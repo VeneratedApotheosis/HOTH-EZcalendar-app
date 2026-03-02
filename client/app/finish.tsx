@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import CalendarEvent from '@/components/calendar-event';
-import { useCalendarLocal, EventDetails } from '../components/calendar-context'; // Adjust path
+import { useCalendarLocal } from '../components/calendar-context'; // Adjust path
+import { EventDetails } from '@/utility/types';
 
 export default function FinishScreen() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function FinishScreen() {
                 key={`${event.title}-${index}`} // Unique key for React
                 title={event.title}
                 // Combining Date and Time for the display if needed
-                time={`${event.StartTime} - ${event.EndTime}`}
+                time={`${event.startTime} - ${event.endTime}`}
                 color={colors[index % colors.length]}
               />
             ))

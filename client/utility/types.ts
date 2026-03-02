@@ -62,7 +62,45 @@ export interface GmailItems {
   mail: GmailItem[];
 }
 
-//CALENDAR TYPES
+//event obj
+export type EventDetails = {
+  title: string;
+  description?: string; // Optional
+  location?: string;    // Optional
+  startTime: string;
+  endTime: string;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//CALENDAR TYPES unneeded
 export type CalendarView = "M" | "W" | "3" | "2" | "1";
 export interface DateContextType {
   curDate: Date,
@@ -89,3 +127,4 @@ export interface FamilyCalendarState {
   parent: CalendarData;       // You (The User)
   children: CalendarData[];   // The Kids
 }
+
