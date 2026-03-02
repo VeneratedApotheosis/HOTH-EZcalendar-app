@@ -55,18 +55,8 @@ export default function CalendarEvent({
 const styles = StyleSheet.create({
   cardContainer: {
     flexDirection: "row",
-    backgroundColor: "#fff",
     marginVertical: 6,
     marginHorizontal: 12,
-    borderRadius: 8,
-    // Shadow for iOS
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    // Elevation for Android
-    elevation: 3,
-    overflow: "hidden", // Ensures the accent bar follows the border radius
   },
   accentBar: {
     width: 6,

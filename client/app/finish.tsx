@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import CalendarEvent from '@/components/calendar-event';
@@ -9,44 +9,57 @@ import { useAddEvent } from '@/hooks/useAddEvent';
 export default function FinishScreen() {
   const router = useRouter();
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
-  const { events } = useCalendarLocal();
+  const { events: allEvents } = useCalendarLocal();
   const colors = ['#ffb3ba', '#ffdfba', '#ffffba', '#baffc9', '#bae1ff'];
   const { createEvent } = useAddEvent()
+  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (allEvents && allEvents.length > 0) {
+      setSelectedIndices(new Set(allEvents.map((_, i) => i)));
+    }
+  }, [allEvents]);
+
+  // 3. Toggle selection on press
+  const toggleSelection = (index: number) => {
+    setSelectedIndices((prev) => {
+      const next = new Set(prev);
+      next.has(index) ? next.delete(index) : next.add(index);
+      return next;
+    });
+  };
 
   const handleAddToCalendar = async () => {
+    const eventsToAdd = allEvents.filter((_, index) => selectedIndices.has(index));
 
-    // 2. Guard clause: Don't do anything if the list is empty
-    if (!events || events.length === 0) {
+    if (eventsToAdd.length === 0) {
       return;
     }
 
     setStatus('loading');
     
     try {
-      // 3. Fire all API calls concurrently for speed
       await Promise.all(
-        events.map(async (localEvent) => {
-          // Map local fields to your strict EventDetails type
+        eventsToAdd.map(async (localEvent) => {
           const eventPayload = {
             title: localEvent.title || 'Untitled Event',
             description: localEvent.description || '',
             location: localEvent.location || '',
-            
-            // Format enforcement: Ensure dates are valid ISO strings
             startTime: new Date(localEvent.startTime).toISOString(),
             endTime: new Date(localEvent.endTime).toISOString(),
           };
 
-          // 4. Pass to your hook (which handles the token internally)
           return createEvent(eventPayload);
         })
       );
+
       setStatus('success');
     } catch (error) {
       console.error("Calendar Sync Error:", error);
       setStatus('idle'); 
     } finally {
-      
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      setStatus('idle'); 
     }
   };
 
@@ -62,22 +75,47 @@ export default function FinishScreen() {
           <View style={styles.gmailDot} />
           <Text style={styles.topBarTitle}>New Events:</Text>
         </View>
+        
+        {/* Added a counter to the top bar so users know how many are selected */}
+        <View style={styles.topBarCountContainer}>
+          <Text style={styles.topBarCount}>
+            {selectedIndices.size} / {allEvents?.length || 0}
+          </Text>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.calendarEventContainer}>
-          {events.length === 0 ? (
-            <Text style={styles.emptyText}>No events extracted yet. Try scanning a PDF!</Text>
+          {!allEvents || allEvents.length === 0 ? (
+            <Text style={styles.emptyText}>No events extracted yet.</Text>
           ) : (
-            events.map((event: EventDetails, index: number) => (
-              <CalendarEvent
-                key={`${event.title}-${index}`} // Unique key for React
-                title={event.title}
-                // Combining Date and Time for the display if needed
-                time={`${event.startTime} - ${event.endTime}`}
-                color={colors[index % colors.length]}
-              />
-            ))
+            allEvents.map((event: EventDetails, index: number) => {
+              const isSelected = selectedIndices.has(index);
+
+              return (
+                // 5. Wrap the event card in a TouchableOpacity for selection
+                <TouchableOpacity
+                  key={`${event.title}-${index}`}
+                  activeOpacity={0.8}
+                  onPress={() => toggleSelection(index)}
+                  style={[
+                    styles.selectableCard,
+                    isSelected ? styles.cardSelected : styles.cardUnselected
+                  ]}
+                >
+                  <CalendarEvent
+                    title={event.title}
+                    time={`${new Date(event.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(event.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`}
+                    color={colors[index % colors.length]}
+                  />
+                  
+                  {/* Optional: A simple visual indicator (checkbox circle) */}
+                  <View style={[styles.checkbox, isSelected && styles.checkboxActive]}>
+                    {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                  </View>
+                </TouchableOpacity>
+              );
+            })
           )}
         </View>
       </ScrollView>
@@ -85,8 +123,20 @@ export default function FinishScreen() {
       {/* Persistent Bottom Button */}
       <View style={styles.buttonContainer}>
         {status !== 'success' ? (
-          <TouchableOpacity style={styles.button} onPress={handleAddToCalendar} disabled={status === 'loading'}>
-            {status === 'loading' ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Add to Google Calendar</Text>}
+          <TouchableOpacity 
+            style={[styles.button, selectedIndices.size === 0 && styles.buttonDisabled]} 
+            onPress={handleAddToCalendar} 
+            disabled={status === 'loading' || selectedIndices.size === 0}
+          >
+            {status === 'loading' ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>
+                {selectedIndices.size === 0 
+                  ? "Select events to add" 
+                  : `Add ${selectedIndices.size} to Calendar`}
+              </Text>
+            )}
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={[styles.button, styles.buttonSuccess]} onPress={handleGoHome}>
@@ -208,5 +258,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+  },selectableCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    borderWidth: 2,
+    paddingRight: 12,
   },
+  cardSelected: {
+    borderColor: '#1a73e8', // Blue border when selected
+    backgroundColor: '#ffffff',
+    opacity: 1,
+  },
+  cardUnselected: {
+    borderColor: 'transparent',
+    backgroundColor: '#ffffff',
+    opacity: 0.5, // Dimmed when not selected
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 'auto', // Pushes it to the right
+  },
+  checkboxActive: {
+    backgroundColor: '#1a73e8',
+    borderColor: '#ffffff',
+  },
+  checkmark: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  buttonDisabled: {
+    backgroundColor: '#A0C3FF', // Lighter blue when disabled
+    shadowOpacity: 0,
+  }
 });
