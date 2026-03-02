@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import RenderHTML from 'react-native-render-html';
+import { WebView } from 'react-native-webview';
 
 import { EmailRow, SelectedEmailCard } from '../components/gmail_components';
 import { AuthContext } from '@/components/context';
@@ -90,7 +91,16 @@ export default function GmailPicker() {
             </View>
             <ScrollView style={{ flex: 1 }}>
               {previewEmail?.body ? (
-                <RenderHTML contentWidth={width * 0.8} source={{ html: previewEmail.body }} />
+                <div
+                  style={{
+                    height: '500px',
+                    overflow: 'auto',
+                    padding: '20px',
+                    border: '1px solid #ccc',
+                    borderRadius: '8px',
+                  }}
+                  dangerouslySetInnerHTML={{ __html: previewEmail.body }}
+                />
               ) : (
                 <Text style={styles.modalBodyText}>{previewEmail?.snippet}</Text>
               )}
