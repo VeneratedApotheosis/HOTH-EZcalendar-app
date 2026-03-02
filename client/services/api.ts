@@ -152,7 +152,9 @@ export const fetchGeminiText = async (input: string, isPdf: boolean = false) => 
 
     //Receive requests
     const data = await response.json();
+    if (data.error) throw Error(JSON.stringify(data));
     console.log('Extracted Events:', data);
+
     return data;
     Alert.alert('Success', `Found ${data.length} events!`);
   } catch (error) {
@@ -163,12 +165,8 @@ export const fetchGeminiText = async (input: string, isPdf: boolean = false) => 
   }
 };
 
-export const fetchGeminiPDF = async () => {
+export const fetchGeminiPDF = async (result: DocumentPicker.DocumentPickerResult) => {
   try {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: 'application/pdf',
-    });
-
     if (result.canceled) return;
 
     const { uri } = result.assets[0];
@@ -178,10 +176,6 @@ export const fetchGeminiPDF = async () => {
 
     // Now send the clean base64 string to your backend
     const events = await fetchGeminiText(base64, true);
-
-    if (events) {
-      console.log('Success! Extracted events:', events);
-    }
   } catch (error) {
     console.error('PDF Error:', error);
   }

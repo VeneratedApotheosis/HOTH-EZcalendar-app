@@ -62,16 +62,9 @@ February 26th! 📝 Also, if you would like to be a mentor for HOTH XIII, sign
     }
   };
 
-  const handlePDF = async () => {
-    setLoading(true);
-
-    await fetchGeminiPDF(); // isPdf is false here
-    setLoading(false);
-  };
-
   return (
     <View style={{ padding: 20 }}>
-      {loading ? <ActivityIndicator size="large" color="#0000ff" /> : <Button title="Test with Sample Email" onPress={handlePDF} />}
+      {loading ? <ActivityIndicator size="large" color="#0000ff" /> : <Button title="Test with Sample Email" onPress={handlePress} />}
     </View>
   );
 }
