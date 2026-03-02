@@ -30,6 +30,7 @@ export default function TabLayout() {
           screenOptions={{
             headerShown: false,
             tabBarButton: HapticTab,
+            tabBarStyle: { display: 'none' },
           }}
         >
           <Tabs.Screen
