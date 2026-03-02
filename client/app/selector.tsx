@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import { Link } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFadeSlide } from "@/hooks/use_fade_slide";
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function SelectorScreen() {
   const { width } = useWindowDimensions();
@@ -29,6 +31,37 @@ export default function SelectorScreen() {
   // ── Animation Logic for Blobs ──
   const blobAnim1 = useRef(new Animated.Value(0)).current;
   const blobAnim2 = useRef(new Animated.Value(0)).current;
+
+    // ── Entrance Animations ──
+    const title = useRef(new Animated.Value(0)).current;
+    const subtitle = useRef(new Animated.Value(0)).current;
+    const card1 = useRef(new Animated.Value(0)).current;
+    const card2 = useRef(new Animated.Value(0)).current;
+    
+    // ── Card Bounce Animation ──
+    const bounceAnim = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(bounceAnim, {
+            toValue: 1.02,
+            duration: 2000,
+            easing: Easing.bezier(0.4, 0, 0.2, 1),
+            useNativeDriver: true,
+          }),
+          Animated.timing(bounceAnim, {
+            toValue: 1,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }, []);
+
+    const bounceStyle = {
+      transform: [{ scale: bounceAnim }],
+    };
 
   useEffect(() => {
     const createAnimation = (anim: Animated.Value, duration: number) => {
@@ -53,6 +86,51 @@ export default function SelectorScreen() {
     createAnimation(blobAnim1, 5000).start();
     createAnimation(blobAnim2, 7000).start();
   }, []);
+    
+    const createFadeSlide = (anim: Animated.Value) => ({
+      opacity: anim,
+      transform: [
+        {
+          translateY: anim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [20, 0],
+          }),
+        },
+      ],
+    });
+    
+    useFocusEffect(
+      React.useCallback(() => {
+        // Reset values
+        title.setValue(0);
+        subtitle.setValue(0);
+        card1.setValue(0);
+        card2.setValue(0);
+
+        Animated.stagger(120, [
+          Animated.timing(title, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(subtitle, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(card1, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(card2, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }, [])
+    );
 
   // Map animations to positions
   const blobStyle1 = {
@@ -71,7 +149,7 @@ export default function SelectorScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "#F0F4F8", overflow: 'hidden' }}>
         
-        {/* ── Blobs (Now behind container) ── */}
+        {/* ── Blobs  ── */}
         <Animated.View style={[styles.blob, styles.blob_one, blobStyle1]} />
         <Animated.View style={[styles.blob, styles.blob_two, blobStyle2]} />
         <Animated.View style={[styles.blob, styles.blob_three, blobStyle2]} />
@@ -86,27 +164,33 @@ export default function SelectorScreen() {
             ])}
             showsVerticalScrollIndicator={false}
           >
-            {/* ── Header Section ── */}
-            <View style={styles.headerArea}>
-              <Text style={StyleSheet.flatten([
-                styles.headerTitle,
-                { fontSize: isTablet ? 40 : 32 }
-              ])}>
-                Import Source
-              </Text>
-              <Text style={StyleSheet.flatten([
-                styles.headerSubtitle,
-                { fontSize: isTablet ? 20 : 16 }
-              ])}>
-                Choose a method to populate your calendar
-              </Text>
-            </View>
+            {/* Header Section  */}
+          <Animated.View style={[styles.headerArea, createFadeSlide(title)]}>
+          <Animated.Text
+            style={[
+              styles.headerTitle,
+              { fontSize: isTablet ? 40 : 32 }
+            ]}
+          >
+            Import Source
+          </Animated.Text>
+          <Animated.Text
+            style={[
+              styles.headerSubtitle,
+              { fontSize: isTablet ? 20 : 16 },
+              createFadeSlide(subtitle)
+            ]}
+          >
+            Choose a method to populate your calendar
+          </Animated.Text>
+            </Animated.View>
 
-            {/* ── Large Tall Grid ── */}
+            {/* Large Tall Grid */}
             <View style={StyleSheet.flatten([styles.grid, { gap: cardGap }])}>
               
               {/* Item 1: File System */}
-              <Link href="/uploader" asChild>
+          <Animated.View style={[createFadeSlide(card1), bounceStyle]}>
+            <Link href="/uploader" asChild>
                 <TouchableOpacity
                   style={StyleSheet.flatten([styles.card, { width: cardWidth }])}
                   activeOpacity={0.7}
@@ -117,10 +201,12 @@ export default function SelectorScreen() {
                   <Text style={styles.cardTitle}>File System</Text>
                   {!isSmallPhone && <Text style={styles.cardDescription}>PDF or TXT</Text>}
                 </TouchableOpacity>
-              </Link>
+          </Link>
+        </Animated.View>
 
               {/* Item 2: Gmail */}
-              <Link href="/gmail_picker" asChild>
+          <Animated.View style={[createFadeSlide(card2), bounceStyle]}>
+            <Link href="/gmail_picker" asChild>
                 <TouchableOpacity
                   style={StyleSheet.flatten([styles.card, { width: cardWidth }])}
                   activeOpacity={0.7}
@@ -131,7 +217,8 @@ export default function SelectorScreen() {
                   <Text style={styles.cardTitle}>Gmail</Text>
                   {!isSmallPhone && <Text style={styles.cardDescription}>Inbox Sync</Text>}
                 </TouchableOpacity>
-              </Link>
+          </Link>
+        </Animated.View>
             </View>
           </ScrollView>
         </View>
@@ -142,8 +229,8 @@ export default function SelectorScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent", // Must be transparent to see blobs
-    zIndex: 2, // Higher than blobs
+    backgroundColor: "transparent", // transparent to see blobs
+    zIndex: 2, // higher than blobs
   },
   scrollContent: {
     flexGrow: 1,
@@ -214,7 +301,7 @@ const styles = StyleSheet.create({
   // ── blobs ──
   blob: {
     position: 'absolute',
-    zIndex: 1 // Lower than container
+    zIndex: 1 // lower than container
   },
   blob_one: { top: -40, right: -40, width: 300, height: 300, borderRadius: 150, backgroundColor: '#adc5f1', opacity: 0.4 },
   blob_two: { bottom: '5%', left: -80, width: 250, height: 250, borderRadius: 125, backgroundColor: '#f4bfc7', opacity: 0.4 },
