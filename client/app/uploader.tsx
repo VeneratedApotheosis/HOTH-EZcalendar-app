@@ -19,6 +19,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { fetchGeminiPDF, fetchGeminiText } from '@/services/api';
 import { useCalendarLocal } from '@/components/calendar-context';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function UploaderScreen() {
   const router = useRouter();
@@ -39,6 +40,36 @@ export default function UploaderScreen() {
   // ── Blobs Animation ──
   const blobAnim1 = useRef(new Animated.Value(0)).current;
   const blobAnim2 = useRef(new Animated.Value(0)).current;
+    
+    // ── Entrance Animations ──
+    const headerAnim = useRef(new Animated.Value(0)).current;
+    const contentAnim = useRef(new Animated.Value(0)).current;
+    const buttonAnim = useRef(new Animated.Value(0)).current;
+
+    // ── Subtle Bounce Animation ──
+    const bounceAnim = useRef(new Animated.Value(1)).current;
+    
+    useEffect(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(bounceAnim, {
+            toValue: 1.02,
+            duration: 2000,
+            easing: Easing.bezier(0.4, 0, 0.2, 1),
+            useNativeDriver: true,
+          }),
+          Animated.timing(bounceAnim, {
+            toValue: 1,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }, []);
+
+    const bounceStyle = {
+      transform: [{ scale: bounceAnim }],
+    };
 
   useEffect(() => {
     const startAnim = (anim: Animated.Value, duration: number) => {
@@ -52,6 +83,44 @@ export default function UploaderScreen() {
     startAnim(blobAnim1, 6000);
     startAnim(blobAnim2, 8000);
   }, []);
+    
+    const createFadeSlide = (anim: Animated.Value) => ({
+      opacity: anim,
+      transform: [
+        {
+          translateY: anim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [30, 0],
+          }),
+        },
+      ],
+    });
+    
+    useFocusEffect(
+      React.useCallback(() => {
+        headerAnim.setValue(0);
+        contentAnim.setValue(0);
+        buttonAnim.setValue(0);
+
+        Animated.stagger(150, [
+          Animated.timing(headerAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(contentAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(buttonAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }, [])
+    );
 
   //Send PDF to Gemini
   const handlePdf = async () => {
@@ -159,12 +228,18 @@ export default function UploaderScreen() {
             {/* ── FIX: Added parent container to center content ── */}
             <View style={styles.outerContainer}>
               <View style={styles.centerContainer}>
-                <View style={styles.headerArea}>
+          <Animated.View style={[styles.headerArea, createFadeSlide(headerAnim)]}>
                   <Text style={[styles.headerTitle, { fontSize: normalize(26) }]}>Upload Document</Text>
                   <Text style={styles.headerSubtitle}>Choose a file or provide text to get started</Text>
-                </View>
+                </Animated.View>
 
-                <View style={[styles.mainLayout, isLargeScreen && styles.rowLayout]}>
+          <Animated.View
+            style={[
+              createFadeSlide(contentAnim),
+              bounceStyle
+            ]}
+          >
+          <View style={[styles.mainLayout, isLargeScreen && styles.rowLayout]}>
                   {/* Left: File Zone */}
                   <View style={styles.column}>
                     <TouchableOpacity
@@ -209,14 +284,17 @@ export default function UploaderScreen() {
                     />
                   </View>
                 </View>
+          </Animated.View>
 
-                <TouchableOpacity
+          <Animated.View style={createFadeSlide(buttonAnim)}>
+            <TouchableOpacity
                   onPress={handleConfirm}
                   disabled={(!selectedFile && !pastedText) || isFetching}
                   style={[styles.confirmBtn, ((!selectedFile && !pastedText) || isFetching) && styles.confirmBtnDisabled]}
                 >
                   {isFetching ? <ActivityIndicator color="#FFF" /> : <Text style={styles.confirmBtnText}>Upload Data →</Text>}
                 </TouchableOpacity>
+        </Animated.View>
               </View>
             </View>
           </ScrollView>
