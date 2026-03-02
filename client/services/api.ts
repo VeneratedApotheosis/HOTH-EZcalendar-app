@@ -96,6 +96,48 @@ export const fetchEmails = async (accessToken: string) => {
   };
 };
 
+//calendar writing
+export const addEventToGoogleCalendar = async (accessToken: string, eventDetails: any) => {
+  const { title, description, location, startDate, endDate } = eventDetails;
+
+  const event = {
+    summary: title,
+    location: location,
+    description: description,
+    start: {
+      dateTime: startDate, // Must be ISO string: 2023-10-25T10:00:00Z
+      timeZone: 'UTC', // just do
+    },
+    end: {
+      dateTime: endDate,
+      timeZone: 'UTC',
+    },
+  };
+
+  try {
+    const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(event),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log('Event created successfully:', data.htmlLink);
+      return data;
+    } else {
+      console.error('Error creating event:', data);
+      throw new Error(data.error.message);
+    }
+  } catch (error) {
+    console.error('Network or API Error:', error);
+  }
+};
+
 export const fetchGeminiText = async (input: string, isPdf: boolean = false) => {
   try {
     //Send Req to Backend

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import CalendarEvent from '@/components/calendar-event';
-import { useCalendarLocal, EventDetails } from '../components/calendar-context'; // Adjust path
+import { useCalendarLocal } from '../components/calendar-context'; // Adjust path
+import { EventDetails } from '@/utility/types';
 
 export default function FinishScreen() {
   const router = useRouter();
