@@ -329,7 +329,7 @@ app.post("/api/extract-events", async (req, res) => {
           parts: [
             {
               text:
-                "Extract calendar events as a JSON array. Include 'title', 'StartTime' and 'EndTime' with ISO 8601 format (Example: 2024-10-27T14:30:30.000Z), and 'location'. Always convert to UTC time zone. If there is no year, set the current year to" +
+                "Extract calendar events as a JSON array. Include 'title', 'startTime' and 'endTime' with ISO 8601 format (Example: 2024-10-27T14:30:30.000Z), and 'location'. Always convert to UTC time zone. If there is no year, set the current year to" +
                 currentYear,
             },
             isPdf
