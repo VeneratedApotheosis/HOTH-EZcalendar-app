@@ -4,18 +4,50 @@ import { useRouter } from 'expo-router';
 import CalendarEvent from '@/components/calendar-event';
 import { useCalendarLocal } from '../components/calendar-context'; // Adjust path
 import { EventDetails } from '@/utility/types';
+import { useAddEvent } from '@/hooks/useAddEvent';
 
 export default function FinishScreen() {
   const router = useRouter();
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
   const { events } = useCalendarLocal();
   const colors = ['#ffb3ba', '#ffdfba', '#ffffba', '#baffc9', '#bae1ff'];
+  const { createEvent } = useAddEvent()
 
-  const handleAddToCalendar = () => {
+  const handleAddToCalendar = async () => {
+
+    // 2. Guard clause: Don't do anything if the list is empty
+    if (!events || events.length === 0) {
+      return;
+    }
+
     setStatus('loading');
-    setTimeout(() => {
+    
+    try {
+      // 3. Fire all API calls concurrently for speed
+      await Promise.all(
+        events.map(async (localEvent) => {
+          // Map local fields to your strict EventDetails type
+          const eventPayload = {
+            title: localEvent.title || 'Untitled Event',
+            description: localEvent.description || '',
+            location: localEvent.location || '',
+            
+            // Format enforcement: Ensure dates are valid ISO strings
+            startTime: new Date(localEvent.startTime).toISOString(),
+            endTime: new Date(localEvent.endTime).toISOString(),
+          };
+
+          // 4. Pass to your hook (which handles the token internally)
+          return createEvent(eventPayload);
+        })
+      );
       setStatus('success');
-    }, 2000);
+    } catch (error) {
+      console.error("Calendar Sync Error:", error);
+      setStatus('idle'); 
+    } finally {
+      
+    }
   };
 
   const handleGoHome = () => {

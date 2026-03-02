@@ -1,3 +1,4 @@
+import { EventDetails } from '@/utility/types';
 import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 
 //Backend Fetching
@@ -94,19 +95,19 @@ export const fetchEmails = async (accessToken: string) => {
 };
 
 //calendar writing
-export const addEventToGoogleCalendar = async ( accessToken : string, eventDetails : any) => {
-  const { title, description, location, startDate, endDate} = eventDetails;
+export const addEventToGoogleCalendar = async ( accessToken : string, eventDetails : EventDetails) => {
+  const { title, description, location, startTime, endTime} = eventDetails;
 
   const event = {
     summary: title,
     location: location,
     description: description,
     start: {
-      dateTime: startDate, // Must be ISO string: 2023-10-25T10:00:00Z
+      dateTime: startTime, // Must be ISO string: 2023-10-25T10:00:00Z
       timeZone: 'UTC',     // just do
     },
     end: {
-      dateTime: endDate,
+      dateTime: endTime,
       timeZone: 'UTC',
     },
   };
