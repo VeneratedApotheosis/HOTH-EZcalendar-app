@@ -4,16 +4,18 @@ import { useRouter } from "expo-router";
 import * as DocumentPicker from "expo-document-picker";
 import { Ionicons } from "@expo/vector-icons";
 
-// Get screen dimensions for responsiveness
-const { width, height } = Dimensions.get('window');
-const scale = width / 375;
-const normalize = (size: number) => Math.round(size * scale);
-
 export default function UploaderScreen() {
   const router = useRouter();
+  const { width, height } = useWindowDimensions();
+  
   const [selectedFile, setSelectedFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [pastedText, setPastedText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // ── Layout Logic ──
+  const isSmallHeight = height < 700;
+  const contentMaxWidth = 550;
+  const horizontalPadding = width * 0.08;
 
   const pickDocument = async () => {
     try {
@@ -24,7 +26,7 @@ export default function UploaderScreen() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setSelectedFile(result.assets[0]);
-        setPastedText(""); // Clear text if file is picked
+        setPastedText(""); 
       }
     } catch (err) {
       console.error("Error picking document:", err);
@@ -260,24 +262,30 @@ const styles = StyleSheet.create({
     color: "#334155",
     marginBottom: normalize(8),
   },
-  headerSubtitle: {
-    fontSize: normalize(15),
-    color: "#94A3B8",
-    marginBottom: 30,
-    textAlign: 'center',
+  centerWrapper: {
+    width: '100%',
+    height: '90%', // Keep content within bounds
+    justifyContent: 'space-evenly', // Distributes items perfectly
   },
   // ── Drop Zone Styles ──
   fileDropZone: {
     width: "100%",
     backgroundColor: "#FFFFFF",
-    borderRadius: 28,
+    borderRadius: 35,
     borderWidth: 2,
     borderColor: "#CBD5E1",
     borderStyle: 'dashed',
+    paddingVertical: 45,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F8FAFC',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: normalize(25),
-    gap: normalize(10),
     marginBottom: 15,
   },
   dropZoneText: {
@@ -321,24 +329,9 @@ const styles = StyleSheet.create({
   },
   confirmBtn: {
     backgroundColor: "#7EB6FF",
-    borderRadius: 22,
+    borderRadius: 25,
     paddingVertical: 18,
     alignItems: "center",
-    shadowColor: "#7EB6FF",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8
-  },
-  confirmBtnDisabled: {
-    backgroundColor: "#CBD5E1",
-    shadowOpacity: 0
-  },
-  confirmBtnText: {
-    color: "#FFFFFF",
-    fontSize: 17,
-    fontWeight: "800",
-    letterSpacing: 0.2
   },
   // ── Blobs Styles ──
   blob: {
