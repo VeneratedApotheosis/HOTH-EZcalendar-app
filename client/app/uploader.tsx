@@ -1,8 +1,29 @@
 import React, { useState, useRef, useEffect } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Dimensions, ActivityIndicator, TextInput, ScrollView, KeyboardAvoidingView, Platform, Animated, Easing } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Dimensions,
+  ActivityIndicator,
+  TextInput,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Animated,
+  Easing,
+  useWindowDimensions,
+  TouchableWithoutFeedback,
+  Keyboard
+} from "react-native";
 import { useRouter } from "expo-router";
 import * as DocumentPicker from "expo-document-picker";
 import { Ionicons } from "@expo/vector-icons";
+
+// ── Define normalization function outside the component ──
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const scale = screenWidth / 375;
+const normalize = (size: number) => Math.round(size * scale);
 
 export default function UploaderScreen() {
   const router = useRouter();
@@ -26,7 +47,7 @@ export default function UploaderScreen() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setSelectedFile(result.assets[0]);
-        setPastedText(""); 
+        setPastedText(""); // Clear text if file is picked
       }
     } catch (err) {
       console.error("Error picking document:", err);
@@ -127,80 +148,106 @@ export default function UploaderScreen() {
       </View>
 
       {/* ── Content Layer (Higher zIndex) ── */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
-      >
-        {/* ── Top Bar ── */}
-        <View style={styles.topBar}>
-          <View style={styles.topBarLeft}>
-            <TouchableOpacity onPress={() => router.push("/selector")}>
-              <Ionicons name="arrow-back" size={24} color="#334155" />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.container}
+        >
+          {/* ── Top Bar ── */}
+          <View style={StyleSheet.flatten([styles.topBar, { paddingTop: Platform.OS === 'ios' ? 50 : 20 }])}>
+            <TouchableOpacity onPress={() => router.push("/selector")} hitSlop={20}>
+              <Ionicons name="arrow-back" size={26} color="#334155" />
             </TouchableOpacity>
             <Text style={styles.topBarTitle}>File Uploader</Text>
+            <View style={{ width: 26 }} /> {/* Spacer for alignment */}
           </View>
-        </View>
 
-        {/* ── Main Content Area - Scrollable ── */}
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* ── Centering Container ── */}
-          <View style={styles.centerContainer}>
-            <Text style={styles.headerTitle}>Upload Document</Text>
-            <Text style={styles.headerSubtitle}>Select a file or paste text below</Text>
+          {/* ── Main Content Area - Scrollable ── */}
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <View style={StyleSheet.flatten([styles.centerWrapper, { maxWidth: contentMaxWidth, paddingHorizontal: horizontalPadding }])}>
+              
+              <View style={styles.headerArea}>
+                <Text style={styles.headerTitle}>Upload Document</Text>
+                <Text style={styles.headerSubtitle}>Choose a file or provide text</Text>
+              </View>
 
-            {/* ── File Selection Area ── */}
-            <TouchableOpacity style={styles.fileDropZone} onPress={pickDocument}>
-              <Ionicons name="cloud-upload-outline" size={normalize(40)} color={selectedFile ? "#7EB6FF" : "#94A3B8"} />
-              <Text style={[styles.dropZoneText, selectedFile && { color: "#7EB6FF" }]}>
-                {selectedFile ? selectedFile.name : "Tap to select PDF or TXT"}
-              </Text>
-              {selectedFile && (
-                <Text style={styles.fileDetails}>
-                  {((selectedFile.size ?? 0) / 1024 / 1024).toFixed(2)} MB
+              {/* ── File Selection Area ── */}
+              <TouchableOpacity
+                style={StyleSheet.flatten([
+                  styles.fileDropZone,
+                  selectedFile && { borderColor: "#7EB6FF", borderStyle: 'solid', borderWidth: 3 },
+                  isSmallHeight && { paddingVertical: 30 }
+                ])}
+                onPress={pickDocument}
+                activeOpacity={0.7}
+              >
+                <View style={StyleSheet.flatten([
+                  styles.iconCircle,
+                  isSmallHeight && { width: 60, height: 60, marginBottom: 10 }
+                ])}>
+                  <Ionicons
+                    name={selectedFile ? "document-text" : "cloud-upload-outline"}
+                    size={isSmallHeight ? 32 : 44}
+                    color={selectedFile ? "#7EB6FF" : "#94A3B8"}
+                  />
+                </View>
+                <Text style={styles.dropZoneText} numberOfLines={1}>
+                  {selectedFile ? selectedFile.name : "Tap to select PDF/TXT"}
+                </Text>
+                {selectedFile && (
+                  <Text style={styles.fileDetails}>
+                    {((selectedFile.size ?? 0) / 1024 / 1024).toFixed(2)} MB
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              <Text style={styles.orText}>OR</Text>
+
+              {/* ── Text Input Area ── */}
+              <TextInput
+                style={StyleSheet.flatten([
+                  styles.textArea,
+                  { flex: isSmallHeight ? 0.6 : 0.8 } // Shrinks input on small screens
+                ])}
+                multiline
+                numberOfLines={6}
+                placeholder="Paste your text or syllabus content here..."
+                value={pastedText}
+                onChangeText={(text) => {
+                  setPastedText(text);
+                  if (text.length > 0) setSelectedFile(null); // Clear file if text is typed
+                }}
+                textAlignVertical="top"
+                placeholderTextColor="#94A3B8"
+              />
+            </View>
+          </ScrollView>
+
+          {/* ── Footer / Action Button ── */}
+          <View style={StyleSheet.flatten([
+            styles.footer,
+            { paddingHorizontal: horizontalPadding, maxWidth: contentMaxWidth }
+          ])}>
+            <TouchableOpacity
+              onPress={handleUpload}
+              disabled={(!selectedFile && !pastedText) || isLoading}
+              style={StyleSheet.flatten([
+                styles.confirmBtn,
+                (!selectedFile && !pastedText || isLoading) && styles.confirmBtnDisabled,
+              ])}
+              activeOpacity={0.8}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.confirmBtnText}>
+                  {selectedFile || pastedText ? "Upload Data →" : "Select file or paste text"}
                 </Text>
               )}
             </TouchableOpacity>
-
-            <Text style={styles.orText}>OR</Text>
-
-            {/* ── Text Input Area ── */}
-            <TextInput
-              style={styles.textArea}
-              multiline
-              numberOfLines={6}
-              placeholder="Paste your text or syllabus content here..."
-              value={pastedText}
-              onChangeText={(text) => {
-                setPastedText(text);
-                if (text.length > 0) setSelectedFile(null); // Clear file if text is typed
-              }}
-              textAlignVertical="top"
-              placeholderTextColor="#94A3B8"
-            />
           </View>
-        </ScrollView>
-
-        {/* ── Footer / Action Button ── */}
-        <View style={styles.footer}>
-          <TouchableOpacity
-            onPress={handleUpload}
-            disabled={(!selectedFile && !pastedText) || isLoading}
-            style={[
-              styles.confirmBtn,
-              (!selectedFile && !pastedText || isLoading) && styles.confirmBtnDisabled,
-            ]}
-            activeOpacity={0.8}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.confirmBtnText}>
-                {selectedFile || pastedText ? "Upload Data →" : "Select file or paste text"}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </View>
   );
 }
@@ -223,32 +270,27 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1, // ── 1. Allow scroll to fill space ──
     justifyContent: 'center', // ── 2. Center content vertically ──
-    padding: normalize(20),
   },
-  // ── New Container for centering contents ──
-  centerContainer: {
-    alignItems: 'center',
+  // ── Center wrapper logic ──
+  centerWrapper: {
     width: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-evenly', // Distributes items perfectly
+    paddingBottom: 20,
   },
   // ── Top Bar Styles ──
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 18,
+    paddingHorizontal: 24,
+    paddingBottom: 15,
     backgroundColor: '#FFFFFF',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 5,
+    elevation: 4,
     zIndex: 10,
-    height: 76,
   },
-  topBarLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
   topBarTitle: {
     fontSize: 20,
     fontWeight: "900",
@@ -256,16 +298,18 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5
   },
   // ── Page Content Styles ──
+  headerArea: { alignItems: 'center', marginBottom: 20 },
   headerTitle: {
     fontSize: normalize(26),
     fontWeight: "800",
     color: "#334155",
-    marginBottom: normalize(8),
+    marginBottom: 4,
   },
-  centerWrapper: {
-    width: '100%',
-    height: '90%', // Keep content within bounds
-    justifyContent: 'space-evenly', // Distributes items perfectly
+  headerSubtitle: {
+    fontSize: normalize(15),
+    color: "#94A3B8",
+    fontWeight: "600",
+    textAlign: 'center',
   },
   // ── Drop Zone Styles ──
   fileDropZone: {
@@ -278,6 +322,7 @@ const styles = StyleSheet.create({
     paddingVertical: 45,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 15,
   },
   iconCircle: {
     width: 80,
@@ -290,8 +335,8 @@ const styles = StyleSheet.create({
   },
   dropZoneText: {
     fontSize: normalize(16),
-    fontWeight: "700",
-    color: "#334155",
+    fontWeight: "800",
+    color: "#94A3B8",
     textAlign: 'center',
     marginTop: 10,
   },
@@ -303,8 +348,8 @@ const styles = StyleSheet.create({
   // ── Styles for "OR" ──
   orText: {
     fontSize: normalize(14),
-    fontWeight: "700",
-    color: "#94A3B8",
+    fontWeight: "900",
+    color: "#CBD5E1",
     marginVertical: 15,
     textAlign: "center",
     width: "100%",
@@ -313,18 +358,19 @@ const styles = StyleSheet.create({
   textArea: {
     width: "100%",
     backgroundColor: "#FFFFFF",
-    borderRadius: 28,
+    borderRadius: 30,
     padding: normalize(20),
     fontSize: normalize(15),
     color: "#334155",
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    height: 150,
     textAlignVertical: 'top',
   },
   // ── Footer Styles ──
   footer: {
-    padding: 20,
+    width: '100%',
+    paddingBottom: Platform.OS === 'ios' ? 40 : 25,
+    alignSelf: 'center',
     backgroundColor: "transparent",
   },
   confirmBtn: {
@@ -332,6 +378,21 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     paddingVertical: 18,
     alignItems: "center",
+    elevation: 8,
+    shadowColor: "#7EB6FF",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+  },
+  confirmBtnDisabled: {
+    backgroundColor: "#CBD5E1",
+    shadowOpacity: 0
+  },
+  confirmBtnText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "800",
+    letterSpacing: 0.2
   },
   // ── Blobs Styles ──
   blob: {
