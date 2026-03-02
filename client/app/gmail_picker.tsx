@@ -7,7 +7,7 @@ import { EmailRow, SelectedEmailCard } from '../components/gmail_components';
 import { AuthContext } from '@/components/context'; // Adjust path to your context
 import { useEmail } from '@/hooks/useEmail'; // Adjust path to your hook
 import { useContext } from 'react';
-import { fetchGemini } from '@/services/api';
+import { fetchGeminiText } from '@/services/api';
 import { useCalendarLocal } from '@/components/calendar-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -34,7 +34,7 @@ export default function GmailPicker({ onConfirm }: GmailPickerProps) {
     const combinedInput = selected.map((email) => `Subject: ${email.subject}\nContent: ${email.body}`).join('\n---\n');
 
     try {
-      const result = await fetchGemini(combinedInput, false);
+      const result = await fetchGeminiText(combinedInput, false);
 
       if (result) {
         if (result.error) {
@@ -100,7 +100,7 @@ export default function GmailPicker({ onConfirm }: GmailPickerProps) {
       <View style={styles.topBar}>
         <View style={styles.topBarLeft}>
           {/* <View style={styles.gmailDot} /> */}
-          <TouchableOpacity onPress={() => router.push("/selector")}>
+          <TouchableOpacity onPress={() => router.push('/selector')}>
             <Ionicons name="arrow-back" size={24} color="#334155" />
           </TouchableOpacity>
           <Text style={styles.topBarTitle}>Gmail Picker</Text>

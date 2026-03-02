@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, View, Alert, ActivityIndicator, Text } from 'react-native';
-import { fetchGemini } from '@/services/api';
+import { fetchGeminiText } from '@/services/api';
 import { useCalendarLocal } from '@/components/calendar-context';
 
 export default function PresetButton() {
@@ -52,7 +52,7 @@ February 26th! 📝 Also, if you would like to be a mentor for HOTH XIII, sign
     `;
 
     setLoading(true);
-    const result = await fetchGemini(sampleText, false); // isPdf is false here
+    const result = await fetchGeminiText(sampleText, false); // isPdf is false here
     setLoading(false);
 
     if (result) {

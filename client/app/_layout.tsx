@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRootNavigationState } from 'expo-router';
 import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
@@ -9,13 +9,19 @@ import { CalendarProvider } from '@/components/calendar-context';
 import { useState, useEffect } from 'react';
 
 export default function TabLayout() {
-  const [isMounted, setIsMounted] = useState(false);
+  const rootNavigationState = useRootNavigationState();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    // Check if the navigation state is actually loaded
+    if (rootNavigationState?.key) {
+      setIsReady(true);
+    }
+  }, [rootNavigationState?.key]);
 
-  if (!isMounted) return null;
+  if (!isReady) {
+    return null; // Or a Loading Spinner
+  }
 
   return (
     <AuthProvider>
@@ -38,7 +44,7 @@ export default function TabLayout() {
           <Tabs.Screen name="uploader" options={{ title: 'uploader' }} />
           <Tabs.Screen name="selector" options={{ title: 'selector' }} />
           <Tabs.Screen
-            name="gmail-picker"
+            name="gmail_picker"
             options={{
               title: 'Pick Emails',
               tabBarIcon: ({ color }) => <IconSymbol size={28} name="envelope.fill" color={color} />,

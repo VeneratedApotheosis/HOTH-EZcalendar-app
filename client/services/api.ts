@@ -1,4 +1,6 @@
 import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import * as DocumentPicker from 'expo-document-picker';
+import { File } from 'expo-file-system';
 
 //Backend Fetching
 export const fetchJwtToken = async (authCode: string, codeVerifier: string, redirectUri: string) => {
@@ -93,7 +95,7 @@ export const fetchEmails = async (accessToken: string) => {
   };
 };
 
-export const fetchGemini = async (input: string, isPdf: boolean = false) => {
+export const fetchGeminiText = async (input: string, isPdf: boolean = false) => {
   try {
     //Send Req to Backend
     const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_LINK}/api/extract-events`, {
@@ -115,5 +117,27 @@ export const fetchGemini = async (input: string, isPdf: boolean = false) => {
     Alert.alert('Error', 'Failed to process PDF');
     return null;
   } finally {
+  }
+};
+
+export const fetchGeminiPDF = async (result: DocumentPicker.DocumentPickerResult) => {
+  try {
+    if (result.canceled) return;
+
+    const { uri } = result.assets[0];
+
+    //Convert to Base64
+    const file = new File(uri);
+    const base64String = await file.base64();
+
+    //Send to Gemini
+    const events = await fetchGeminiText(base64String, true);
+
+    if (events) {
+      console.log('Success!', events);
+    }
+  } catch (error) {
+    console.error('PDF Processing Error:', error);
+    Alert.alert('Error', 'Could not read the PDF file.');
   }
 };
