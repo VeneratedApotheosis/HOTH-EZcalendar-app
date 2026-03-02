@@ -15,7 +15,12 @@ export const CalendarProvider = ({ children }: { children: ReactNode }) => {
 
   // Function to merge new Gemini results with existing state
   const addEvents = (newEvents: EventDetails[]) => {
-    setEvents((prev) => [...prev, ...newEvents]);
+    try {
+      setEvents((prev) => [...prev, ...newEvents]);
+    } catch (err) {
+      console.log(err);
+      clearEvents();
+    }
   };
 
   const clearEvents = () => setEvents([]);
