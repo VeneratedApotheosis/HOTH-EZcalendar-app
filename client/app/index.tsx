@@ -35,14 +35,55 @@ export default function HomeScreen() {
 
   // Use a slight scale increase only for very large screens
   const iconScale = screenWidth > 1000 ? 1.1 : 1;
+    // ── Animation Logic for Blobs ──
+    const blobAnim1 = useRef(new Animated.Value(0)).current;
+    const blobAnim2 = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+      const createAnimation = (anim: Animated.Value, duration: number) => {
+        return Animated.loop(
+          Animated.sequence([
+            Animated.timing(anim, {
+              toValue: 1,
+              duration: duration,
+              easing: Easing.inOut(Easing.ease),
+              useNativeDriver: true,
+            }),
+            Animated.timing(anim, {
+              toValue: 0,
+              duration: duration,
+              easing: Easing.inOut(Easing.ease),
+              useNativeDriver: true,
+            }),
+          ])
+        );
+      };
+
+      createAnimation(blobAnim1, 5000).start();
+      createAnimation(blobAnim2, 7000).start();
+    }, []);
+
+    // Map animations to positions
+    const blobStyle1 = {
+      transform: [
+        { translateX: blobAnim1.interpolate({ inputRange: [0, 1], outputRange: [0, 15] }) },
+        { translateY: blobAnim1.interpolate({ inputRange: [0, 1], outputRange: [0, -15] }) },
+      ],
+    };
+    const blobStyle2 = {
+      transform: [
+        { translateX: blobAnim2.interpolate({ inputRange: [0, 1], outputRange: [0, -15] }) },
+        { translateY: blobAnim2.interpolate({ inputRange: [0, 1], outputRange: [0, 15] }) },
+      ],
+    };
 
   return (
     <SafeAreaView style={styles.container}>
       {/* ── Background Blobs (Decoration) ── */}
-      <View style={[styles.blob, styles.blob_one]} />
-      <View style={[styles.blob, styles.blob_two]} />
-      <View style={[styles.blob, styles.blob_three]} />
-      <View style={[styles.blob, styles.blob_four]} />
+          <Animated.View style={[styles.blob, styles.blob_one, blobStyle1]} />
+          <Animated.View style={[styles.blob, styles.blob_two, blobStyle2]} />
+          <Animated.View style={[styles.blob, styles.blob_three, blobStyle2]} />
+          <Animated.View style={[styles.blob, styles.blob_four, blobStyle1]} />
 
       {/* ── Main Wrapper with Constraints ── */}
       <View style={styles.mainWrapper}>
@@ -140,7 +181,7 @@ const styles = StyleSheet.create({
   loginWrap: { width: '100%', maxWidth: 400, alignItems: 'center', gap: 12 },
   loginHint: { fontSize: 10, color: '#94A3B8', fontWeight: '800', letterSpacing: 1 },
   
-  // ── Updated Blob Styles ──
+  // ── blobs ──
   blob: { position: 'absolute', zIndex: 1 },
   blob_one: { top: -40, right: -40, width: 300, height: 300, borderRadius: 150, backgroundColor: '#adc5f1', opacity: 0.4 },
   blob_two: { bottom: '5%', left: -80, width: 250, height: 250, borderRadius: 125, backgroundColor: '#f4bfc7', opacity: 0.4 },
