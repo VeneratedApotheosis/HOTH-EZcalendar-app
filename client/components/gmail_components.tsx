@@ -1,24 +1,25 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { EmailData } from "@/utility/types";
-
+import { Ionicons } from '@expo/vector-icons';
 
 export const EmailRow = React.memo(
   ({
     email,
     isSelected,
     onToggle,
+    onPreview, // Added this prop
   }: {
     email: EmailData;
     isSelected: boolean;
     onToggle: (id: string) => void;
+    onPreview: () => void; // Added this prop
   }) => (
     <TouchableOpacity
       onPress={() => onToggle(email.id)}
       activeOpacity={0.7}
       style={[styles.emailRow, isSelected && styles.emailRowSelected]}
     >
-      
       <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
         {isSelected && <View style={styles.checkBall} />}
       </View>
@@ -31,7 +32,19 @@ export const EmailRow = React.memo(
           >
             {email.sender}
           </Text>
-          {!email.isRead && <View style={styles.unreadPulse} />}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {!email.isRead && <View style={styles.unreadPulse} />}
+            {/* Added Eye Button specifically for preview */}
+            <TouchableOpacity 
+              onPress={(e) => {
+                e.stopPropagation(); // Prevents selection toggle
+                onPreview();
+              }}
+              style={styles.eyeBtn}
+            >
+              <Ionicons name="eye-outline" size={16} color="#CBD5E1" />
+            </TouchableOpacity>
+          </View>
         </View>
         
         <Text style={styles.subject} numberOfLines={1}>
@@ -71,9 +84,7 @@ export const SelectedEmailCard = ({
   </View>
 );
 
-
 const styles = StyleSheet.create({
-  
   emailRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -83,7 +94,6 @@ const styles = StyleSheet.create({
     borderRadius: 24, 
     backgroundColor: "#FFFFFF",
     gap: 14,
-   
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
@@ -109,50 +119,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#7EB6FF", 
     borderColor: "#7EB6FF",
   },
-  checkBall: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#FFF",
-  },
-  unreadPulse: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#FFB3BA", 
-  },
-  emailContent: {
-    flex: 1,
-  },
-  emailHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 2,
-  },
-  sender: {
-    fontSize: 15,
-    color: "#64748B",
-    fontWeight: "500",
-  },
-  senderUnread: {
-    color: "#1E293B",
-    fontWeight: "800",
-  },
-  subject: {
-    fontSize: 13,
-    color: "#94A3B8",
-    fontWeight: "400",
-  },
-  dateText: {
-    fontSize: 10,
-    color: "#CBD5E1",
-    fontWeight: "700",
-    marginTop: 4,
-    textTransform: "uppercase",
-  },
-
-  
+  checkBall: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#FFF" },
+  unreadPulse: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#FFB3BA" },
+  eyeBtn: { padding: 4 }, // Added padding for better touch target
+  emailContent: { flex: 1 },
+  emailHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 2 },
+  sender: { fontSize: 15, color: "#64748B", fontWeight: "500" },
+  senderUnread: { color: "#1E293B", fontWeight: "800" },
+  subject: { fontSize: 13, color: "#94A3B8", fontWeight: "400" },
+  dateText: { fontSize: 10, color: "#CBD5E1", fontWeight: "700", marginTop: 4, textTransform: "uppercase" },
   selectedCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 28, 
@@ -166,36 +141,9 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 3,
   },
-  cardTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  cardSender: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#334155",
-    flex: 1,
-  },
-  closeButton: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: "#FFF1F2", 
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  closeIconText: {
-    color: "#F43F5E", 
-    fontSize: 16,
-    fontWeight: "bold",
-    lineHeight: 18,
-  },
-  cardSubject: {
-    fontSize: 12,
-    color: "#64748B",
-    lineHeight: 16,
-    fontWeight: "500",
-  },
+  cardTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
+  cardSender: { fontSize: 14, fontWeight: "800", color: "#334155", flex: 1 },
+  closeButton: { width: 22, height: 22, borderRadius: 11, backgroundColor: "#FFF1F2", alignItems: "center", justifyContent: "center" },
+  closeIconText: { color: "#F43F5E", fontSize: 16, fontWeight: "bold", lineHeight: 18 },
+  cardSubject: { fontSize: 12, color: "#64748B", lineHeight: 16, fontWeight: "500" },
 });
