@@ -11,7 +11,7 @@ const { GoogleGenAI } = require("@google/genai");
 
 //setup
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
 
 //setting up oAuth content
 const oAuth2Client = new OAuth2Client(
@@ -337,14 +337,14 @@ app.post("/api/extract-events", async (req, res) => {
     // 2. In the new SDK, you call ai.models.generateContent directly
     // Note: We use gemini-3.1-flash for best 2026 performance
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-lite",
+      model: "gemini-2.5-flash",
       contents: [
         {
           role: "user",
           parts: [
             {
               text:
-                "Extract calendar events as a JSON array. Include 'title', 'StartTime' and 'EndTime' with ISO 8601 format (Example: 2024-10-27T14:30:30.000Z), 'location', and a one-sentence 'discription'. Always convert to UTC time zone. If there is no year, set the current year to" +
+                "Extract calendar events as a JSON array. Include 'title', 'startTime' and 'endTime' with ISO 8601 format (Example: 2024-10-27T14:30:30.000Z), 'location', and a one-sentence 'description'. Always convert to UTC time zone. If there is no year, set the current year to" +
                 currentYear,
             },
             isPdf
@@ -382,7 +382,5 @@ app.post("/api/extract-events", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-app.use(express.json({ limit: "50mb" }));
 
 app.listen(3001, () => console.log("Server running on port 3001"));

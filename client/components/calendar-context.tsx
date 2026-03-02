@@ -3,8 +3,8 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 // 1. Match the exact shape your backend returns
 export interface EventDetails {
   title: string;
-  StartTime: string;
-  EndTime: string;
+  startTime: string;
+  endTime: string;
   location: string;
 }
 
