@@ -318,6 +318,21 @@ app.post("/api/extract-events", async (req, res) => {
   try {
     const { input, isPdf } = req.body;
     const currentYear = new Date().getFullYear();
+    const parts = [
+      { text: "Extract all calendar events from this input as JSON." },
+    ];
+
+    if (isPdf) {
+      // We tell Gemini: "This gibberish is actually a PDF"
+      parts.push({
+        inlineData: {
+          data: input, // The "gibberish" string goes here
+          mimeType: "application/pdf",
+        },
+      });
+    } else {
+      parts.push({ text: input });
+    }
 
     // 2. In the new SDK, you call ai.models.generateContent directly
     // Note: We use gemini-3.1-flash for best 2026 performance
@@ -329,7 +344,7 @@ app.post("/api/extract-events", async (req, res) => {
           parts: [
             {
               text:
-                "Extract calendar events as a JSON array. Include 'title', 'StartTime' and 'EndTime' with ISO 8601 format (Example: 2024-10-27T14:30:30.000Z), and 'location'. Always convert to UTC time zone. If there is no year, set the current year to" +
+                "Extract calendar events as a JSON array. Include 'title', 'StartTime' and 'EndTime' with ISO 8601 format (Example: 2024-10-27T14:30:30.000Z), 'location', and a one-sentence 'discription'. Always convert to UTC time zone. If there is no year, set the current year to" +
                 currentYear,
             },
             isPdf
@@ -367,5 +382,7 @@ app.post("/api/extract-events", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+app.use(express.json({ limit: "50mb" }));
 
 app.listen(3001, () => console.log("Server running on port 3001"));

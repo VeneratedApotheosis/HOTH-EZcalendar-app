@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
+import { Platform } from 'react-native';
 
 //Backend Fetching
 export const fetchJwtToken = async (authCode: string, codeVerifier: string, redirectUri: string) => {
@@ -120,24 +121,49 @@ export const fetchGeminiText = async (input: string, isPdf: boolean = false) => 
   }
 };
 
-export const fetchGeminiPDF = async (result: DocumentPicker.DocumentPickerResult) => {
+export const fetchGeminiPDF = async () => {
   try {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: 'application/pdf',
+    });
+
     if (result.canceled) return;
 
     const { uri } = result.assets[0];
 
-    //Convert to Base64
-    const file = new File(uri);
-    const base64String = await file.base64();
+    // Convert based on platform automatically
+    const base64 = await getBase64FromUri(uri);
 
-    //Send to Gemini
-    const events = await fetchGeminiText(base64String, true);
+    // Now send the clean base64 string to your backend
+    const events = await fetchGeminiText(base64, true);
 
     if (events) {
-      console.log('Success!', events);
+      console.log('Success! Extracted events:', events);
     }
   } catch (error) {
-    console.error('PDF Processing Error:', error);
-    Alert.alert('Error', 'Could not read the PDF file.');
+    console.error('PDF Error:', error);
+  }
+};
+
+const getBase64FromUri = async (uri: string): Promise<string> => {
+  if (Platform.OS === 'web') {
+    // 1. Web Logic: Use standard fetch + FileReader
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = (reader.result as string).split(',')[1];
+        resolve(base64String);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } else {
+    // 2. Native Logic: Use Expo FileSystem (Stable path)
+    // This avoids the "validatePath" error by using the standard async method
+    return await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
   }
 };
