@@ -1,70 +1,31 @@
-import React, { useState, useCallback } from 'react';
-import { EmailData } from '@/utility/types';
-
-import { View, Text, FlatList, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
-
-import { EmailRow, SelectedEmailCard } from '../components/gmail_components';
-import { AuthContext } from '@/components/context'; // Adjust path to your context
-import { useEmail } from '@/hooks/useEmail'; // Adjust path to your hook
-import { useContext } from 'react';
-import { fetchGemini } from '@/services/api';
-import { useCalendarLocal } from '@/components/calendar-context';
+import React, { useState, useCallback, useContext } from 'react';
+import { View, Text, FlatList, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Modal, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-export interface GmailPickerProps {
-  emails?: EmailData[];
-  isLoading?: boolean;
-  onConfirm?: (selected: EmailData[]) => Promise<void>;
-}
+import RenderHTML from 'react-native-render-html';
 
-export default function GmailPicker({ onConfirm }: GmailPickerProps) {
-  const [extractedText, setExtractedText] = useState('');
+import { EmailRow, SelectedEmailCard } from '../components/gmail_components';
+import { AuthContext } from '@/components/context';
+import { useEmail } from '@/hooks/useEmail';
+import { fetchGemini } from '@/services/api';
+import { useCalendarLocal } from '@/components/calendar-context';
+import { EmailData } from '@/utility/types';
+
+export default function GmailPicker() {
+  const router = useRouter();
+  const { width } = useWindowDimensions();
   const [isFetching, setIsFetching] = useState(false);
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'fail'>('idle');
+  const [previewEmail, setPreviewEmail] = useState<EmailData | null>(null);
+
   const { addEvents, clearEvents } = useCalendarLocal();
   const { jwtToken } = useContext(AuthContext);
-  const sessionToken = jwtToken?.sessionToken ?? null;
-
-  const handleConfirmEmails = async (selected: EmailData[]) => {
-    if (selected.length === 0) return;
-    setIsFetching(true);
-    setStatus('processing');
-
-    //Combine all selected email bodies into one string
-    const combinedInput = selected.map((email) => `Subject: ${email.subject}\nContent: ${email.body}`).join('\n---\n');
-
-    try {
-      const result = await fetchGemini(combinedInput, false);
-
-      if (result) {
-        if (result.error) {
-          throw Error('Gemini fetch failed: Limit likely exceeded');
-        }
-        clearEvents();
-        addEvents(result);
-        setExtractedText(JSON.stringify(result, null, 2));
-        setStatus('success');
-      } else setStatus('fail');
-    } catch (error) {
-      console.error('Gemini processing failed', error);
-      setStatus('fail');
-    } finally {
-      setIsFetching(false);
-    }
-  };
-
-  const handleGoFinish = () => {
-    router.replace('/finish');
-  };
-
-  // 2. Fetch the emails using your hook
-  // 3. Extract the array of messages (fallback to empty array if null)
-  const { emails: fetchedData, isLoading } = useEmail(sessionToken);
+  const { emails: fetchedData, isLoading } = useEmail(jwtToken?.sessionToken ?? null);
   const emails = fetchedData?.messages || [];
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const toggleEmail = useCallback((id: string) => {
-    setSelectedIds((prev) => {
+    setSelectedIds(prev => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
@@ -72,101 +33,113 @@ export default function GmailPicker({ onConfirm }: GmailPickerProps) {
   }, []);
 
   const removeEmail = useCallback((id: string) => {
-    setSelectedIds((prev) => {
+    setSelectedIds(prev => {
       const next = new Set(prev);
       next.delete(id);
       return next;
     });
   }, []);
 
-  const selectedEmails = emails.filter((e) => selectedIds.has(e.id));
+  const selectedEmails = emails.filter(e => selectedIds.has(e.id));
 
-  const handleConfirm = () => {
-    if (status === 'success') {
-      handleGoFinish();
-    }
-    handleConfirmEmails(selectedEmails);
+  const handleConfirm = async () => {
+    if (status === 'success') return router.replace('/finish');
+    if (!selectedEmails.length) return;
+
+    setIsFetching(true);
+    setStatus('processing');
+    const combinedInput = selectedEmails.map(e => `Subject: ${e.subject}\nBody: ${e.body || e.snippet}`).join('\n---\n');
+
+    try {
+      const result = await fetchGemini(combinedInput, false);
+      if (result) {
+        clearEvents();
+        addEvents(result);
+        setStatus('success');
+      } else setStatus('fail');
+    } catch { setStatus('fail'); } 
+    finally { setIsFetching(false); }
   };
-
-  const renderEmailRow = ({ item }: { item: EmailData }) => (
-    <EmailRow email={item} isSelected={selectedIds.has(item.id)} onToggle={toggleEmail} />
-  );
-
-  const router = useRouter();
 
   return (
     <View style={styles.container}>
-      {/* ── Header ── */}
+      {/* ── Modal ── */}
+      <Modal visible={!!previewEmail} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle} numberOfLines={1}>{previewEmail?.subject}</Text>
+              <TouchableOpacity onPress={() => setPreviewEmail(null)}>
+                <Ionicons name="close-circle" size={28} color="#CBD5E1" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ flex: 1 }}>
+              {previewEmail?.body ? (
+                <RenderHTML contentWidth={width * 0.8} source={{ html: previewEmail.body }} />
+              ) : (
+                <Text style={styles.modalBodyText}>{previewEmail?.snippet}</Text>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── Top Bar ── */}
       <View style={styles.topBar}>
         <View style={styles.topBarLeft}>
-          {/* <View style={styles.gmailDot} /> */}
           <TouchableOpacity onPress={() => router.push("/selector")}>
             <Ionicons name="arrow-back" size={24} color="#334155" />
           </TouchableOpacity>
           <Text style={styles.topBarTitle}>Gmail Picker</Text>
         </View>
         <View style={styles.topBarCountContainer}>
-          <Text style={styles.topBarCount}>
-            {selectedIds.size} / {emails.length} Selected
-          </Text>
+          <Text style={styles.topBarCount}>{selectedIds.size} / {emails.length} Selected</Text>
         </View>
       </View>
 
+      {/* ── Half-Half Panels ── */}
       <View style={styles.panels}>
         <View style={[styles.panel, styles.panelLeft]}>
           <Text style={styles.panelLabel}>Inbox</Text>
-          {isLoading ? (
-            <View style={styles.loaderContainer}>
-              <ActivityIndicator size="large" color="#7EB6FF" />
-            </View>
-          ) : (
+          {isLoading ? <ActivityIndicator style={{ marginTop: 50 }} color="#7EB6FF" /> : (
             <FlatList
               data={emails}
-              keyExtractor={(item) => item.id}
-              renderItem={renderEmailRow}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.listContent}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => (
+                <EmailRow 
+                  email={item} 
+                  isSelected={selectedIds.has(item.id)} 
+                  onToggle={toggleEmail} 
+                  onPreview={() => setPreviewEmail(item)} 
+                />
+              )}
             />
           )}
         </View>
 
         <View style={[styles.panel, styles.panelRight]}>
           <Text style={styles.panelLabel}>Selected</Text>
-
-          {selectedEmails.length === 0 ? (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyCircle}>
-                <Text style={styles.emptyIcon}>×</Text>
-              </View>
-              <Text style={styles.emptyText}>No emails{'\n'}selected yet</Text>
-            </View>
-          ) : (
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.selectedList}>
-              {selectedEmails.map((email) => (
-                <SelectedEmailCard key={email.id} email={email} onRemove={removeEmail} />
-              ))}
-            </ScrollView>
-          )}
+          <ScrollView contentContainerStyle={styles.selectedList}>
+            {selectedEmails.map(e => (
+              <SelectedEmailCard key={e.id} email={e} onRemove={removeEmail} />
+            ))}
+            {selectedEmails.length === 0 && <Text style={styles.emptyText}>Nothing selected</Text>}
+          </ScrollView>
         </View>
       </View>
 
+      {/* ── Footer ── */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.confirmBtn, selectedIds.size === 0 && styles.confirmBtnDisabled]}
+        <TouchableOpacity 
+          style={[styles.confirmBtn, !selectedIds.size && styles.confirmBtnDisabled]} 
           onPress={handleConfirm}
-          disabled={selectedIds.size === 0 || isFetching}
+          disabled={!selectedIds.size || isFetching}
         >
-          {status === 'idle' ? (
+          {isFetching ? <ActivityIndicator color="#fff" /> : (
             <Text style={styles.confirmBtnText}>
-              {selectedIds.size === 0 ? 'Pick some emails!' : `Process ${selectedIds.size} Items →`}
+              {status === 'success' ? 'Continue →' : selectedIds.size === 0 ? 'Pick some emails!' : `Extract ${selectedIds.size} Messages`}
             </Text>
-          ) : (
-            <></>
           )}
-
-          {status === 'processing' ? <ActivityIndicator color="#fff" /> : <></>}
-          {status === 'success' ? <Text style={styles.buttonText}>Success! Continue</Text> : <></>}
-          {status === 'fail' ? <Text style={styles.confirmBtnText}>Extraction Failed. Try Again.</Text> : <></>}
         </TouchableOpacity>
       </View>
     </View>
@@ -174,265 +147,26 @@ export default function GmailPicker({ onConfirm }: GmailPickerProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F0F4F8',
-  },
-  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    backgroundColor: '#FFFFFF',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 5,
-    zIndex: 10,
-  },
+  container: { flex: 1, backgroundColor: '#F0F4F8' },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 18, backgroundColor: '#FFFFFF', borderBottomLeftRadius: 30, borderBottomRightRadius: 30, elevation: 5 },
   topBarLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  gmailDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#FF8A80', // Pastel Coral
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  topBarTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#334155',
-    letterSpacing: -0.5,
-  },
-  topBarCount: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#7EB6FF',
-    backgroundColor: '#EBF4FF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-
+  topBarTitle: { fontSize: 20, fontWeight: '900', color: '#334155' },
+  topBarCountContainer: { backgroundColor: '#F0F7FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
+  topBarCount: { fontSize: 12, fontWeight: '700', color: '#7EB6FF' },
   panels: { flex: 1, flexDirection: 'row', padding: 12, gap: 12 },
-  panel: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 28,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.02)',
-  },
-  panelLeft: { elevation: 2 },
-  panelRight: {
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    borderStyle: 'dashed',
-    borderColor: '#CBD5E1',
-  },
-
-  panelLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#94A3B8',
-    letterSpacing: 1.5,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-  },
-  divider: { width: 0 },
-
-  listContent: { paddingBottom: 20 },
-  selectedList: { padding: 12, gap: 10 },
-
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    gap: 8,
-  },
-  emptyIcon: {
-    fontSize: 24,
-    color: '#CBD5E1',
-    fontWeight: '300',
-  },
-  emptyText: {
-    fontSize: 13,
-    color: '#94A3B8',
-    textAlign: 'center',
-    fontWeight: '600',
-    lineHeight: 18,
-  },
-
-  footer: {
-    padding: 20,
-    backgroundColor: 'transparent',
-  },
-  confirmBtn: {
-    backgroundColor: '#7EB6FF',
-    borderRadius: 22,
-    paddingVertical: 18,
-    alignItems: 'center',
-    shadowColor: '#7EB6FF',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  confirmBtnDisabled: {
-    backgroundColor: '#CBD5E1',
-    shadowOpacity: 0,
-  },
-  confirmBtnText: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-  },
-
-  buttonSuccess: {
-    backgroundColor: '#1e8e3e',
-    shadowColor: '#1e8e3e',
-  },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 40,
-  },
-  topBarCountContainer: {
-    backgroundColor: '#F0F7FF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  emptyCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
+  panel: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 28, overflow: 'hidden' },
+  panelLeft: { flex: 1.3, elevation: 2 },
+  panelRight: { backgroundColor: 'rgba(255,255,255,0.7)', borderStyle: 'dashed', borderWidth: 1, borderColor: '#CBD5E1' },
+  panelLabel: { fontSize: 11, fontWeight: '800', color: '#94A3B8', textAlign: 'center', paddingVertical: 16, textTransform: 'uppercase' },
+  selectedList: { padding: 12 },
+  emptyText: { textAlign: 'center', color: '#94A3B8', marginTop: 50 },
+  footer: { padding: 20 },
+  confirmBtn: { backgroundColor: '#7EB6FF', borderRadius: 22, paddingVertical: 18, alignItems: 'center' },
+  confirmBtnDisabled: { backgroundColor: '#CBD5E1' },
+  confirmBtnText: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalContent: { width: '100%', backgroundColor: '#fff', borderRadius: 25, padding: 20, maxHeight: '80%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  modalTitle: { flex: 1, fontSize: 16, fontWeight: '900', color: '#1E293B', marginRight: 10 },
+  modalBodyText: { fontSize: 14, color: '#334155', lineHeight: 22 },
 });
-
-export const MOCK_EMAILS: EmailData[] = [
-  {
-    id: '1',
-    sender: 'Google Security',
-    senderEmail: 'no-reply@accounts.google.com',
-    subject: 'Security alert for your linked account',
-    snippet: 'A new sign-in was detected on a Windows device. If this was you...',
-    date: '10:45 AM',
-    isRead: false,
-  },
-  {
-    id: '2',
-    sender: 'GitHub',
-    senderEmail: 'noreply@github.com',
-    subject: '[GitHub] Payment Receipt for @your-username',
-    snippet: 'Your payment for the monthly Pro plan has been processed successfully.',
-    date: 'Yesterday',
-    isRead: true,
-  },
-  {
-    id: '3',
-    sender: 'Figma',
-    senderEmail: 'comment-reply@figma.com',
-    subject: 'New comment on [Mobile App] Design System',
-    snippet: "Sarah left a comment: 'Should we change this primary blue to #1A73E8?'",
-    date: 'Feb 28',
-    isRead: false,
-  },
-  {
-    id: '4',
-    sender: 'Vercel',
-    senderEmail: 'deployment@vercel.com',
-    subject: 'Deployment Successful: client-app-7x92j',
-    snippet: 'Your project was successfully deployed to production. View the logs...',
-    date: 'Feb 27',
-    isRead: true,
-  },
-  {
-    id: '5',
-    sender: 'Slack',
-    senderEmail: 'notification@slack.com',
-    subject: 'You have 3 unread messages in #dev-team',
-    snippet: "John Doe: 'Has anyone checked the new API endpoint yet?'",
-    date: 'Feb 27',
-    isRead: false,
-  },
-  {
-    id: '6',
-    sender: 'Stripe',
-    senderEmail: 'support@stripe.com',
-    subject: 'Your weekly payout is on its way',
-    snippet: 'We’ve initiated a transfer of $1,240.00 to your bank account ending in 4242.',
-    date: 'Feb 26',
-    isRead: true,
-  },
-  {
-    id: '7',
-    sender: 'Google Security2',
-    senderEmail: 'no-reply@accounts.google.com',
-    subject: 'Security alert for your linked account',
-    snippet: 'A new sign-in was detected on a Windows device. If this was you...',
-    date: '10:45 AM',
-    isRead: false,
-  },
-  {
-    id: '8',
-    sender: 'GitHub2',
-    senderEmail: 'noreply@github.com',
-    subject: '[GitHub] Payment Receipt for @your-username',
-    snippet: 'Your payment for the monthly Pro plan has been processed successfully.',
-    date: 'Yesterday',
-    isRead: true,
-  },
-  {
-    id: '9',
-    sender: 'Figma2',
-    senderEmail: 'comment-reply@figma.com',
-    subject: 'New comment on [Mobile App] Design System',
-    snippet: "Sarah left a comment: 'Should we change this primary blue to #1A73E8?'",
-    date: 'Feb 28',
-    isRead: false,
-  },
-  {
-    id: '10',
-    sender: 'Vercel2',
-    senderEmail: 'deployment@vercel.com',
-    subject: 'Deployment Successful: client-app-7x92j',
-    snippet: 'Your project was successfully deployed to production. View the logs...',
-    date: 'Feb 27',
-    isRead: true,
-  },
-  {
-    id: '11',
-    sender: 'Slack2',
-    senderEmail: 'notification@slack.com',
-    subject: 'You have 3 unread messages in #dev-team',
-    snippet: "John Doe: 'Has anyone checked the new API endpoint yet?'",
-    date: 'Feb 27',
-    isRead: false,
-  },
-  {
-    id: '12',
-    sender: 'Stripe2',
-    senderEmail: 'support@stripe.com',
-    subject: 'Your weekly payout is on its way',
-    snippet: 'We’ve initiated a transfer of $1,240.00 to your bank account ending in 4242.',
-    date: 'Feb 26',
-    isRead: true,
-  },
-];
