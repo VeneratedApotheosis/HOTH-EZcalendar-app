@@ -1,5 +1,15 @@
 import React, { useState, useCallback, useContext } from 'react';
-import { View, Text, FlatList, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Modal, useWindowDimensions } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+  Modal,
+  useWindowDimensions,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import RenderHTML from 'react-native-render-html';
@@ -7,7 +17,7 @@ import RenderHTML from 'react-native-render-html';
 import { EmailRow, SelectedEmailCard } from '../components/gmail_components';
 import { AuthContext } from '@/components/context';
 import { useEmail } from '@/hooks/useEmail';
-import { fetchGemini } from '@/services/api';
+import { fetchGeminiText } from '@/services/api';
 import { useCalendarLocal } from '@/components/calendar-context';
 import { EmailData } from '@/utility/types';
 
@@ -25,7 +35,7 @@ export default function GmailPicker() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const toggleEmail = useCallback((id: string) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
@@ -33,14 +43,14 @@ export default function GmailPicker() {
   }, []);
 
   const removeEmail = useCallback((id: string) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       next.delete(id);
       return next;
     });
   }, []);
 
-  const selectedEmails = emails.filter(e => selectedIds.has(e.id));
+  const selectedEmails = emails.filter((e) => selectedIds.has(e.id));
 
   const handleConfirm = async () => {
     if (status === 'success') return router.replace('/finish');
@@ -48,17 +58,20 @@ export default function GmailPicker() {
 
     setIsFetching(true);
     setStatus('processing');
-    const combinedInput = selectedEmails.map(e => `Subject: ${e.subject}\nBody: ${e.body || e.snippet}`).join('\n---\n');
+    const combinedInput = selectedEmails.map((e) => `Subject: ${e.subject}\nBody: ${e.body || e.snippet}`).join('\n---\n');
 
     try {
-      const result = await fetchGemini(combinedInput, false);
+      const result = await fetchGeminiText(combinedInput, false);
       if (result) {
         clearEvents();
         addEvents(result);
         setStatus('success');
       } else setStatus('fail');
-    } catch { setStatus('fail'); } 
-    finally { setIsFetching(false); }
+    } catch {
+      setStatus('fail');
+    } finally {
+      setIsFetching(false);
+    }
   };
 
   return (
@@ -68,7 +81,9 @@ export default function GmailPicker() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle} numberOfLines={1}>{previewEmail?.subject}</Text>
+              <Text style={styles.modalTitle} numberOfLines={1}>
+                {previewEmail?.subject}
+              </Text>
               <TouchableOpacity onPress={() => setPreviewEmail(null)}>
                 <Ionicons name="close-circle" size={28} color="#CBD5E1" />
               </TouchableOpacity>
@@ -87,13 +102,17 @@ export default function GmailPicker() {
       {/* ── Top Bar ── */}
       <View style={styles.topBar}>
         <View style={styles.topBarLeft}>
-          <TouchableOpacity onPress={() => router.push("/selector")}>
+          {/* <View style={styles.gmailDot} /> */}
+          <TouchableOpacity onPress={() => router.push('/selector')} />
+          <TouchableOpacity onPress={() => router.push('/selector')}>
             <Ionicons name="arrow-back" size={24} color="#334155" />
           </TouchableOpacity>
           <Text style={styles.topBarTitle}>Gmail Picker</Text>
         </View>
         <View style={styles.topBarCountContainer}>
-          <Text style={styles.topBarCount}>{selectedIds.size} / {emails.length} Selected</Text>
+          <Text style={styles.topBarCount}>
+            {selectedIds.size} / {emails.length} Selected
+          </Text>
         </View>
       </View>
 
@@ -101,16 +120,18 @@ export default function GmailPicker() {
       <View style={styles.panels}>
         <View style={[styles.panel, styles.panelLeft]}>
           <Text style={styles.panelLabel}>Inbox</Text>
-          {isLoading ? <ActivityIndicator style={{ marginTop: 50 }} color="#7EB6FF" /> : (
+          {isLoading ? (
+            <ActivityIndicator style={{ marginTop: 50 }} color="#7EB6FF" />
+          ) : (
             <FlatList
               data={emails}
-              keyExtractor={item => item.id}
+              keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-                <EmailRow 
-                  email={item} 
-                  isSelected={selectedIds.has(item.id)} 
-                  onToggle={toggleEmail} 
-                  onPreview={() => setPreviewEmail(item)} 
+                <EmailRow
+                  email={item}
+                  isSelected={selectedIds.has(item.id)}
+                  onToggle={toggleEmail}
+                  onPreview={() => setPreviewEmail(item)}
                 />
               )}
             />
@@ -120,7 +141,7 @@ export default function GmailPicker() {
         <View style={[styles.panel, styles.panelRight]}>
           <Text style={styles.panelLabel}>Selected</Text>
           <ScrollView contentContainerStyle={styles.selectedList}>
-            {selectedEmails.map(e => (
+            {selectedEmails.map((e) => (
               <SelectedEmailCard key={e.id} email={e} onRemove={removeEmail} />
             ))}
             {selectedEmails.length === 0 && <Text style={styles.emptyText}>Nothing selected</Text>}
@@ -130,12 +151,14 @@ export default function GmailPicker() {
 
       {/* ── Footer ── */}
       <View style={styles.footer}>
-        <TouchableOpacity 
-          style={[styles.confirmBtn, !selectedIds.size && styles.confirmBtnDisabled]} 
+        <TouchableOpacity
+          style={[styles.confirmBtn, !selectedIds.size && styles.confirmBtnDisabled]}
           onPress={handleConfirm}
           disabled={!selectedIds.size || isFetching}
         >
-          {isFetching ? <ActivityIndicator color="#fff" /> : (
+          {isFetching ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
             <Text style={styles.confirmBtnText}>
               {status === 'success' ? 'Continue →' : selectedIds.size === 0 ? 'Pick some emails!' : `Extract ${selectedIds.size} Messages`}
             </Text>
@@ -148,7 +171,16 @@ export default function GmailPicker() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F0F4F8' },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 18, backgroundColor: '#FFFFFF', borderBottomLeftRadius: 30, borderBottomRightRadius: 30, elevation: 5 },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 18,
+    backgroundColor: '#FFFFFF',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    elevation: 5,
+  },
   topBarLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   topBarTitle: { fontSize: 20, fontWeight: '900', color: '#334155' },
   topBarCountContainer: { backgroundColor: '#F0F7FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },

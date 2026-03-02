@@ -27,6 +27,7 @@ expo-env.d.ts
 
 # better sqlite 3
 *.db
+*.env
 
 # debug
 npm-debug.*
