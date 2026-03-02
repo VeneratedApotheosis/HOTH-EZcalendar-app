@@ -1,65 +1,140 @@
-import { StyleSheet, View, Text, TouchableOpacity, Dimensions } from "react-native";
+import React, { useEffect, useRef } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  ScrollView,
+  Platform,
+  Animated,
+  Easing
+} from "react-native";
 import { Link } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-
-// Get screen dimensions for responsiveness
-const { width, height } = Dimensions.get('window');
-const scale = width / 375;
-const normalize = (size: number) => Math.round(size * scale);
-
-// Calculate button width proportionally
-const PADDING_HORIZONTAL = normalize(20);
-const BUTTON_GAP = normalize(12);
-const MAX_BUTTON_WIDTH = 300;
-const calculatedWidth = (width - (PADDING_HORIZONTAL * 2) - BUTTON_GAP) / 2;
-const BUTTON_WIDTH = Math.min(calculatedWidth, MAX_BUTTON_WIDTH);
 
 export default function SelectorScreen() {
-    const router = useRouter();
+  const { width } = useWindowDimensions();
+
+  // ── Responsive Logic ──
+  const isTablet = width > 768;
+  const isSmallPhone = width < 380;
+  
+  const horizontalPadding = (width * 0.08) || 24;
+  const cardGap = 50;
+  const columnCount = isTablet ? 3 : 2;
+  
+  const cardWidth = (width - (horizontalPadding * 2) - (cardGap * (columnCount - 1))) / columnCount;
+
+  // ── Animation Logic for Blobs ──
+  const blobAnim1 = useRef(new Animated.Value(0)).current;
+  const blobAnim2 = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const createAnimation = (anim: Animated.Value, duration: number) => {
+      return Animated.loop(
+        Animated.sequence([
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: duration,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(anim, {
+            toValue: 0,
+            duration: duration,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+    };
+
+    createAnimation(blobAnim1, 5000).start();
+    createAnimation(blobAnim2, 7000).start();
+  }, []);
+
+  // Map animations to positions
+  const blobStyle1 = {
+    transform: [
+      { translateX: blobAnim1.interpolate({ inputRange: [0, 1], outputRange: [0, 15] }) },
+      { translateY: blobAnim1.interpolate({ inputRange: [0, 1], outputRange: [0, -15] }) },
+    ],
+  };
+  const blobStyle2 = {
+    transform: [
+      { translateX: blobAnim2.interpolate({ inputRange: [0, 1], outputRange: [0, -15] }) },
+      { translateY: blobAnim2.interpolate({ inputRange: [0, 1], outputRange: [0, 15] }) },
+    ],
+  };
+
   return (
-    <View style={styles.container}>
-      {/* ── Top Bar - Reduced Padding ── */}
-      <View style={styles.topBar}>
-        <View style={styles.topBarLeft}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#334155" />
-          </TouchableOpacity>
-          <Text style={styles.topBarTitle}>Upload Source</Text>
+    <View style={{ flex: 1, backgroundColor: "#F0F4F8", overflow: 'hidden' }}>
+        
+        {/* ── Blobs (Now behind container) ── */}
+        <Animated.View style={[styles.blob, styles.blob_one, blobStyle1]} />
+        <Animated.View style={[styles.blob, styles.blob_two, blobStyle2]} />
+        <Animated.View style={[styles.blob, styles.blob_three, blobStyle2]} />
+        <Animated.View style={[styles.blob, styles.blob_four, blobStyle1]} />
+        
+        {/* ── Main Container (Now zIndex higher) ── */}
+        <View style={styles.container}>
+          <ScrollView
+            contentContainerStyle={StyleSheet.flatten([
+              styles.scrollContent,
+              { paddingHorizontal: horizontalPadding }
+            ])}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* ── Header Section ── */}
+            <View style={styles.headerArea}>
+              <Text style={StyleSheet.flatten([
+                styles.headerTitle,
+                { fontSize: isTablet ? 40 : 32 }
+              ])}>
+                Import Source
+              </Text>
+              <Text style={StyleSheet.flatten([
+                styles.headerSubtitle,
+                { fontSize: isTablet ? 20 : 16 }
+              ])}>
+                Choose a method to populate your calendar
+              </Text>
+            </View>
+
+            {/* ── Large Tall Grid ── */}
+            <View style={StyleSheet.flatten([styles.grid, { gap: cardGap }])}>
+              
+              {/* Item 1: File System */}
+              <Link href="/uploader" asChild>
+                <TouchableOpacity
+                  style={StyleSheet.flatten([styles.card, { width: cardWidth }])}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.iconBackground}>
+                    <Ionicons name="document-text-outline" size={isTablet ? 50 : 42} color="#7EB6FF" />
+                  </View>
+                  <Text style={styles.cardTitle}>File System</Text>
+                  {!isSmallPhone && <Text style={styles.cardDescription}>PDF or TXT</Text>}
+                </TouchableOpacity>
+              </Link>
+
+              {/* Item 2: Gmail */}
+              <Link href="/gmail_picker" asChild>
+                <TouchableOpacity
+                  style={StyleSheet.flatten([styles.card, { width: cardWidth }])}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.iconBackground, { backgroundColor: '#FFEDEA' }]}>
+                    <MaterialCommunityIcons name="gmail" size={isTablet ? 50 : 42} color="#FF8A80" />
+                  </View>
+                  <Text style={styles.cardTitle}>Gmail</Text>
+                  {!isSmallPhone && <Text style={styles.cardDescription}>Inbox Sync</Text>}
+                </TouchableOpacity>
+              </Link>
+            </View>
+          </ScrollView>
         </View>
-      </View>
-
-      {/* ── Main Content Area ── */}
-      <View style={styles.content}>
-        <Text style={styles.headerTitle}>Select Import Type</Text>
-        <Text style={styles.headerSubtitle}>Choose how to populate your calendar</Text>
-
-        {/* ── Action Buttons ── */}
-        <View style={styles.buttonContainer}>
-          
-          {/* Button 1: File Uploader */}
-          <Link href="/uploader" asChild>
-            <TouchableOpacity style={styles.card} activeOpacity={0.7}>
-              <View style={styles.iconBackground}>
-                <Ionicons name="document-text-outline" size={normalize(32)} color="#7EB6FF" />
-              </View>
-              <Text style={styles.cardTitle}>File System</Text>
-              <Text style={styles.cardDescription}>TXT / PDF documents</Text>
-            </TouchableOpacity>
-          </Link>
-
-          {/* Button 2: Gmail Picker */}
-          <Link href="/gmail_picker" asChild>
-            <TouchableOpacity style={styles.card} activeOpacity={0.7}>
-              <View style={[styles.iconBackground, { backgroundColor: '#FFEDEA' }]}>
-                <MaterialCommunityIcons name="gmail" size={normalize(32)} color="#FF8A80" />
-              </View>
-              <Text style={styles.cardTitle}>Gmail</Text>
-              <Text style={styles.cardDescription}>Select from inbox</Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
-      </View>
     </View>
   );
 }
@@ -67,109 +142,82 @@ export default function SelectorScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F0F4F8", // Pastel Blue background
+    backgroundColor: "transparent", // Must be transparent to see blobs
+    zIndex: 2, // Higher than blobs
   },
-  
-  // ── Top Bar Styles - FIXED PADDING ──
-  topBar: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 20,
-      paddingVertical: 18,
-      backgroundColor: '#FFFFFF',
-      borderBottomLeftRadius: 30,
-      borderBottomRightRadius: 30,
-
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.05,
-      shadowRadius: 12,
-      elevation: 5,
-      zIndex: 10,
-
-      height: 76,
-  },
-  topBarLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
-  gmailDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#FF8A80", // Pastel Coral
-    borderWidth: 2,
-    borderColor: "#fff"
-  },
-  topBarTitle: {
-    fontSize: 20,
-    fontWeight: "900",
-    color: "#334155",
-    letterSpacing: -0.5
-  },
-  
-  // ── Page Content Styles ──
-  content: {
-    flex: 1,
-    padding: PADDING_HORIZONTAL,
-    alignItems: 'center',
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  headerArea: {
+    alignItems: 'center',
+    marginBottom: 60,
   },
   headerTitle: {
-    fontSize: normalize(26),
-    fontWeight: "bold",
+    fontWeight: "900",
     color: "#334155",
-    marginBottom: normalize(8),
+    textAlign: 'center',
+    letterSpacing: -1,
   },
   headerSubtitle: {
-    fontSize: normalize(15),
     color: "#94A3B8",
-    marginBottom: height * 0.05,
-    textAlign: 'center',
-  },
-  
-  // ── Button Card Styles ──
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: BUTTON_GAP,
-    width: "100%",
-  },
-  card: {
-    flexDirection: "column",
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    width: BUTTON_WIDTH,
-    
-    // Rounded and Shadowed
-    padding: normalize(25),
-    borderRadius: 28,
-    
-    // Shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  iconBackground: {
-    width: normalize(60),
-    height: normalize(60),
-    borderRadius: normalize(30),
-    backgroundColor: '#F0F7FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: normalize(16),
-  },
-  cardTitle: {
-    fontSize: normalize(17),
-    fontWeight: "700",
-    color: "#334155",
-    marginBottom: normalize(6),
-    textAlign: 'center',
-  },
-  cardDescription: {
-    fontSize: normalize(13),
-    color: "#94A3B8",
+    marginTop: 12,
     textAlign: 'center',
     fontWeight: "600",
   },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 60,
+    borderRadius: 35,
+    alignItems: "center",
+    justifyContent: 'center',
+    minHeight: 250,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20
+      },
+      android: { elevation: 8 },
+      web: { boxShadow: '0 10px 25px rgba(0,0,0,0.08)' }
+    })
+  },
+  iconBackground: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#F0F7FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 25,
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#334155",
+    textAlign: 'center',
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: "#94A3B8",
+    marginTop: 10,
+    textAlign: 'center',
+    fontWeight: "700",
+  },
+  // ── blobs ──
+  blob: {
+    position: 'absolute',
+    zIndex: 1 // Lower than container
+  },
+  blob_one: { top: -40, right: -40, width: 300, height: 300, borderRadius: 150, backgroundColor: '#adc5f1', opacity: 0.4 },
+  blob_two: { bottom: '5%', left: -80, width: 250, height: 250, borderRadius: 125, backgroundColor: '#f4bfc7', opacity: 0.4 },
+  blob_three: { top: '30%', left: -50, width: 150, height: 150, borderRadius: 75, backgroundColor: '#adc5f1', opacity: 0.3 },
+  blob_four: { bottom: '15%', right: -30, width: 200, height: 200, borderRadius: 100, backgroundColor: '#f4bfc7', opacity: 0.3 },
 });
